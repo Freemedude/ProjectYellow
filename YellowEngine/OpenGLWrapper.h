@@ -11,13 +11,22 @@
 
 #if _DEBUG
 // Clears all errors from the OpenGL error queue, executes contained code, then prints all errors that occured.
-#define GLCall(x) \
+#define GLCall(expr) \
     GLClearErrors();\
-    (x);\
-    assert(GLLogCall((#x), __FILE__, __LINE__))
+    (expr);\
+    assert(GLLogCall((#expr), __FILE__, __LINE__))
+
+#define GLCallAssign(dest, expr) \
+    GLClearErrors();\
+    dest = (expr);\
+    assert(GLLogCall((#expr), __FILE__, __LINE__))
 #else
 #define GLCall(x) (x)
+#define GLCallAssign(dest, expr) \
+    dest = (expr);
 #endif
+
+
 
 
 

@@ -17,29 +17,12 @@ void KeyboardCB(uint32_t keyCode)
 	}
 }
 
-void TestMath()
-{
-	using namespace Yellow;
-
-	Mat4 id = Identity();
-
-	Mat4 trans = Translate(1, 0, 1);
-	Mat4 invTrans = Translate(-1, 0, -1);
-	Mat4 scale = Scale(1, 0.5, 2);
-	Mat4 invScale = Scale(1, 2, 0.5);
-
-	Mat4 alsoId = id * id;
-
-	Mat4 result = trans * invTrans;
-
-}
-
 int main(int argc, char* argv[])
 {
+	using namespace Yellow;
 	(argc);
 	(argv);
-	using namespace Yellow;
-	TestMath();
+
 	std::wstring appName = L"My App";
 	Windows32Platform platform(1000, 1000, appName);
 	platform.SetOnKeyCallback(KeyboardCB);
@@ -54,6 +37,12 @@ int main(int argc, char* argv[])
 	prog.Attach(&vShader);
 	prog.Attach(&fShader);
 	prog.Link();
+
+	std::string matrixName = "u_matrix";
+
+	Mat4 scale = Scale(0.5, 1, 1);
+	Mat4 translate = Translate(1, 1, 0);
+	Mat4 modelMatrix = translate * scale;
 
 	RenderObject triangle = RenderObject::Triangle();
 
@@ -73,6 +62,8 @@ int main(int argc, char* argv[])
 
 		prog.Bind();
 		triangle.Render();
+
+		prog.SetMatrix(matrixName, modelMatrix);
 
 		platform.SwapFrameBuffers();
 	}
