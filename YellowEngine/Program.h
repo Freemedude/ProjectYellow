@@ -13,7 +13,7 @@ class Program
 {
 private:
 	GLuint _id;
-	GLint GetLocation(std::string& name);
+	GLint GetLocation(const std::string& name);
 
 public:
 	Program();
@@ -23,9 +23,8 @@ public:
 	void Bind() const;
 	void Link() const;
 
-
-	void SetFloat(std::string& name, float v);
-	void SetMatrix(std::string& name, Mat4& v);
+	void SetFloat(const std::string& name, float v);
+	void SetMatrix(const std::string& name, const Mat4& v);
 };
 
 }
