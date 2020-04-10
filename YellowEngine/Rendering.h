@@ -11,9 +11,9 @@
 #include "Shader.h"
 #include "Program.h"
 
+
 namespace Yellow
 {
-
 struct ArrayVoidPtr
 {
 	void* data;
@@ -36,10 +36,28 @@ public:
 	}
 };
 
+class Material
+{
+public:
+	Program* program;
+};
+
+class Transform
+{
+public:
+	V3 position = {0, 0, 0};
+	V3 scale = {1, 1, 1};
+
+
+	Mat4 ComputeMatrix() const;
+};
+
 
 class RenderObject
 {
 public:
+	Transform* transform;
+	Material* material;
 	ArrayPtr<Vertex> vertices;
 	ArrayPtr<Index> indices;
 	GLuint vao;
@@ -51,7 +69,7 @@ public:
 
 	void Bind() const;
 	void Render() const;
-	static RenderObject Triangle();
+	static RenderObject* Triangle();
 private:
 	static void AddAttribute(
 		GLuint index,
