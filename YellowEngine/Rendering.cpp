@@ -3,9 +3,15 @@
 #include "YellowEngine.h"
 #include "YellowMath.h"
 
+
 namespace Yellow
 {
-
+Mat4 Transform::ComputeMatrix() const
+{
+	Mat4 translateMatrix = Translate(position);
+	Mat4 scaleMatrix = Scale(scale);
+	return translateMatrix * scaleMatrix;
+}
 
 RenderObject::RenderObject(ArrayPtr<Vertex> vertices,
                            ArrayPtr<Index> indices)
@@ -18,7 +24,8 @@ RenderObject::RenderObject(ArrayPtr<Vertex> vertices,
 	Bind();
 
 	CreateBuffer(vertices.ToVoidPtr(), GL_ARRAY_BUFFER, GL_STATIC_DRAW, &vbo);
-	CreateBuffer(indices.ToVoidPtr(), GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, &ibo);
+	CreateBuffer(indices.ToVoidPtr(), GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW,
+	             &ibo);
 
 	AddAttribute(0, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, pos));
 	AddAttribute(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, col));
@@ -42,14 +49,14 @@ void RenderObject::AddAttribute(
 	GLCall(glEnableVertexAttribArray(index));
 }
 
-void RenderObject::CreateBuffer(ArrayVoidPtr data, GLint type, GLuint hint, OUT GLuint *bufferId)
+void RenderObject::CreateBuffer(ArrayVoidPtr data, GLint type, GLuint hint,
+                                OUT GLuint* bufferId)
 {
-
 	GLCall(glGenBuffers(1, bufferId));
 	GLCall(glBindBuffer(type, *bufferId));
 	GLCall(glBufferData(
 		type,
-		data.elementSize * data.count,
+		static_cast<GLsizeiptr>(data.elementSize * data.count),
 		data.data,
 		hint));
 }
@@ -68,10 +75,16 @@ void RenderObject::Bind() const
 void RenderObject::Render() const
 {
 	Bind();
-	GLCall(glDrawElements(GL_TRIANGLES, indices.count, GL_UNSIGNED_INT, nullptr));
+	material->program->SetMatrix("u_matrix", transform->ComputeMatrix());
+
+	GLCall(	glDrawElements(
+		GL_TRIANGLES, 
+		static_cast<GLsizei>(indices.count), 
+		GL_UNSIGNED_INT, 
+		nullptr));
 }
 
-RenderObject RenderObject::Triangle()
+RenderObject* RenderObject::Triangle()
 {
 	Vertex* vertices = new Vertex[3];
 	{
@@ -91,6 +104,6 @@ RenderObject RenderObject::Triangle()
 		memcpy(indices, idxs, sizeof(idxs));
 	}
 
-	return {{vertices, 3}, {indices, 3}};
+	return new RenderObject{{vertices, 3}, {indices, 3}};
 }
 }

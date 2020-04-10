@@ -362,7 +362,7 @@ inline Mat4 Identity()
 	};
 }
 
-inline Mat4 operator *(Mat4& a, Mat4& b)
+inline Mat4 MatrixMultiply(Mat4& a, Mat4& b)
 {
 	Mat4 result{
 		Mat4DotRowCol(a, b, 0, 0), Mat4DotRowCol(a, b, 0, 1),
@@ -379,6 +379,11 @@ inline Mat4 operator *(Mat4& a, Mat4& b)
 	};
 
 	return result;
+}
+
+inline Mat4 operator *(Mat4& a, Mat4& b)
+{
+	return MatrixMultiply(a, b);
 }
 
 inline Mat4 Scale(float scaleX, float scaleY, float scaleZ)

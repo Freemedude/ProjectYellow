@@ -4,6 +4,7 @@
 #include <string>
 
 // Engine
+#include "Scene.h"
 #include "YellowEngine.h"
 
 
@@ -27,6 +28,8 @@ int main(int argc, char* argv[])
 	Windows32Platform platform(1000, 1000, appName);
 	platform.SetOnKeyCallback(KeyboardCB);
 
+	Scene scene;
+
 	std::string vertexShaderPath = "../assets/shaders/OnlyPosition.vert";
 	Shader vShader(vertexShaderPath, GL_VERTEX_SHADER);
 
@@ -38,17 +41,29 @@ int main(int argc, char* argv[])
 	prog.Attach(&fShader);
 	prog.Link();
 
-	std::string matrixName = "u_matrix";
+	Material basic;
+	basic.program = &prog;
 
-	Mat4 scale = Scale(0.5, 1, 1);
-	Mat4 translate = Translate(1, 1, 0);
-	Mat4 modelMatrix = translate * scale;
+	Transform transforms[2];
+	
+	// Fill scene
+	{
+		RenderObject* ro = RenderObject::Triangle();
+		ro->material = &basic;
+		ro->transform = &transforms[0];
+		ro->transform->position = { 0.5,0,0 };
+		scene.RenderObjects().push_back(ro);
+	}
+	{
+		RenderObject* ro = RenderObject::Triangle();
+		ro->material = &basic;
+		ro->transform = &transforms[1];
+		ro->transform->position = { -0.5,0.25,0 };
+		scene.RenderObjects().push_back(ro);
+	}
 
-	RenderObject triangle = RenderObject::Triangle();
 
-	float redIncrement = 0.001f;
-
-	float red = 0;
+	prog.Bind();
 	while (platform.ProcessMessages())
 	{
 		if (shouldQuit)
@@ -56,14 +71,15 @@ int main(int argc, char* argv[])
 			platform.Quit();
 		}
 
-		red = fmod(red + redIncrement, 1);
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-		GLCall(glClearColor(red, 0, 0, 0));
+		GLCall(glClearColor(0.5, 0.2, 0.2, 0));
 
 		prog.Bind();
-		triangle.Render();
+		for (auto& ro : scene.RenderObjects())
+		{
+			ro->Render();
+		}
 
-		prog.SetMatrix(matrixName, modelMatrix);
 
 		platform.SwapFrameBuffers();
 	}
