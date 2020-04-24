@@ -8,7 +8,7 @@
 
 namespace Yellow
 {
-File::File(std::string& filename)
+File::File(const std::string& filename)
 	: filename(filename)
 {
 	HANDLE hTextFile = Win32OpenFile(filename);
@@ -34,7 +34,7 @@ File::~File()
 	delete [] text;
 }
 
-HANDLE File::Win32OpenFile(std::string& filename)
+HANDLE File::Win32OpenFile(const std::string& filename)
 {
 	return CreateFileA(
 		filename.c_str(),

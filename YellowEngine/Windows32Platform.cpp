@@ -12,21 +12,25 @@ inline LRESULT CALLBACK WindowProc(
 	_In_ LPARAM lParam
 );
 
+
 namespace Yellow
 {
-OnKeyCallback* s_onKeyCallback;
+// todo: Make these not global
+// Callbacks
+static OnKeyCallback* s_onKeyCallback;
+static OnWMPaintCallback* s_onWMPaintCallback;
 
 Yellow::Windows32Platform::Windows32Platform(
-	int width, 
+	int width,
 	int height,
-	std::wstring& title)
+	const std::wstring& title)
 {
 	_hInstance = GetModuleHandle(nullptr);
 	WNDCLASSEX windowClass{};
-
+    LPCWSTR windowTitle = L"Apple";
 	windowClass.hInstance = _hInstance;
-	windowClass.lpszClassName = title.c_str();
-	windowClass.lpfnWndProc = WindowProc;
+    windowClass.lpszClassName = windowTitle;
+    windowClass.lpfnWndProc = WindowProc;
 	windowClass.cbSize = sizeof(windowClass);
 	windowClass.style = CS_OWNDC;
 	windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -68,6 +72,11 @@ void Windows32Platform::SetOnKeyCallback(OnKeyCallback cb)
 	s_onKeyCallback = cb;
 }
 
+void Windows32Platform::SetOnWMPaintCallback(OnWMPaintCallback cb)
+{
+	s_onWMPaintCallback = cb;
+}
+
 
 void Windows32Platform::Quit()
 {
@@ -87,6 +96,7 @@ bool Yellow::Windows32Platform::ProcessMessages()
 
 		if (_message.message == WM_QUIT)
 		{
+			printf("We donezo\n");
 			return false;
 		}
 	}
@@ -160,10 +170,23 @@ inline LRESULT CALLBACK WindowProc(
 	_In_ LPARAM lParam
 )
 {
-	if (uMsg == WM_KEYDOWN)
+	switch (uMsg)
 	{
-		Yellow::s_onKeyCallback(wParam);
+	case WM_KEYDOWN:
+		
+		
+		if(Yellow::s_onKeyCallback) Yellow::s_onKeyCallback(wParam);
+		break;
+	case WM_PAINT:
+		if(Yellow::s_onWMPaintCallback) Yellow::s_onWMPaintCallback();
+		break;
+	case WM_CLOSE:
+	case WM_QUIT:
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
 	}
+
 
 	return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

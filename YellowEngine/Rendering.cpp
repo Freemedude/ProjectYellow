@@ -13,25 +13,23 @@ Mat4 Transform::ComputeMatrix() const
 	return translateMatrix * scaleMatrix;
 }
 
-RenderObject::RenderObject(ArrayPtr<Vertex> vertices,
-                           ArrayPtr<Index> indices)
-{
-	this->vertices = vertices;
-	this->indices = indices;
 
+Mesh::Mesh(Array vertices, Array indices)
+	: vertices(vertices), indices(indices)
+{
 	GLCall(glGenVertexArrays(1, &vao));
 
 	Bind();
 
-	CreateBuffer(vertices.ToVoidPtr(), GL_ARRAY_BUFFER, GL_STATIC_DRAW, &vbo);
-	CreateBuffer(indices.ToVoidPtr(), GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW,
+	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &vbo);
+	CreateBuffer(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW,
 	             &ibo);
 
 	AddAttribute(0, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, pos));
 	AddAttribute(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, col));
 }
 
-void RenderObject::AddAttribute(
+void Mesh::AddAttribute(
 	GLuint index,
 	GLuint type,
 	GLint size,
@@ -49,42 +47,49 @@ void RenderObject::AddAttribute(
 	GLCall(glEnableVertexAttribArray(index));
 }
 
-void RenderObject::CreateBuffer(ArrayVoidPtr data, GLint type, GLuint hint,
-                                OUT GLuint* bufferId)
+void Mesh::CreateBuffer(Array data, GLint type, GLuint hint,
+                        OUT GLuint* bufferId)
 {
 	GLCall(glGenBuffers(1, bufferId));
 	GLCall(glBindBuffer(type, *bufferId));
 	GLCall(glBufferData(
 		type,
-		static_cast<GLsizeiptr>(data.elementSize * data.count),
+		static_cast<GLsizeiptr>(data.elementSize * data.count * data.elementSize
+		),
 		data.data,
 		hint));
 }
 
-RenderObject::~RenderObject()
-{
-	GLCall(glDeleteVertexArrays(1, &vao));
-}
-
-void RenderObject::Bind() const
+void Mesh::Bind() const
 {
 	GLCall(glBindVertexArray(vao));
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 }
 
+RenderObject::RenderObject(Mesh* mesh, Material* material, Transform* transform)
+	: mesh(mesh), material(material), transform(transform)
+{
+}
+
+RenderObject::~RenderObject()
+{
+}
+
+
 void RenderObject::Render() const
 {
-	Bind();
+	mesh->Bind();
+	material->program->Bind();
 	material->program->SetMatrix("u_matrix", transform->ComputeMatrix());
 
-	GLCall(	glDrawElements(
-		GL_TRIANGLES, 
-		static_cast<GLsizei>(indices.count), 
-		GL_UNSIGNED_INT, 
+	GLCall(glDrawElements(
+		GL_TRIANGLES,
+		static_cast<GLsizei>(mesh->indices.count),
+		GL_UNSIGNED_INT,
 		nullptr));
 }
 
-RenderObject* RenderObject::Triangle()
+Mesh* Mesh::Triangle()
 {
 	Vertex* vertices = new Vertex[3];
 	{
@@ -104,6 +109,6 @@ RenderObject* RenderObject::Triangle()
 		memcpy(indices, idxs, sizeof(idxs));
 	}
 
-	return new RenderObject{{vertices, 3}, {indices, 3}};
+	return new Mesh{{vertices, 3, sizeof(Vertex)}, {indices, 3, sizeof(Index)}};
 }
 }

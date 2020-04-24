@@ -10,7 +10,8 @@
 
 namespace Yellow
 {
-typedef void (OnKeyCallback)(UINT);
+typedef void (OnKeyCallback)(INT);
+typedef void (OnWMPaintCallback)();
 
 
 class Windows32Platform
@@ -24,11 +25,13 @@ private:
 	bool _shouldQuit;
 
 public:
-	Windows32Platform(int width, int height, std::wstring& title);
+	Windows32Platform(int width, int height, const std::wstring& title);
 	~Windows32Platform();
 
 
 	void SetOnKeyCallback(OnKeyCallback cb);
+	void SetOnWMPaintCallback(OnWMPaintCallback cb);
+
 	bool ProcessMessages();
 	void SwapFrameBuffers() const;
 	void Quit();

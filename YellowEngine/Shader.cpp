@@ -10,7 +10,7 @@
 
 namespace Yellow
 {
-Shader::Shader(std::string& path, GLuint type)
+Shader::Shader(const std::string& path, GLuint type)
 	: _path(path),
 	  _type(type)
 {
