@@ -416,6 +416,14 @@ inline Mat4 Translate(V3 trans)
 	return Translate(trans[0], trans[1], trans[2]);
 }
 
+// Projections
+inline Mat4 Orthogonal()
+{
+	
+}
+
+
+
 struct Vertex
 {
 	V3 pos;

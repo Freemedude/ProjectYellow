@@ -1,0 +1,2 @@
+add_executable(HelloYellow HelloYellow.cpp HelloYellow.h)
+target_link_libraries(HelloYellow YellowEngine)

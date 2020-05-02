@@ -7,7 +7,7 @@ uniform mat4 u_matrix;
 
 out vec3 v_color;
 
-
+// Hello
 void main()
 {
     vec4 pos = u_matrix * vec4(position, 1);

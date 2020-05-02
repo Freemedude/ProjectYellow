@@ -14,26 +14,14 @@
 
 namespace Yellow
 {
-struct ArrayVoidPtr
+
+typedef uint32_t Index;
+
+struct Array
 {
 	void* data;
 	uint64_t count;
 	uint64_t elementSize;
-};
-
-typedef uint32_t Index;
-
-template <class T>
-class ArrayPtr
-{
-public:
-	T* data;
-	uint64_t count;
-
-	ArrayVoidPtr ToVoidPtr()
-	{
-		return {data, count, sizeof(data[0])};
-	}
 };
 
 class Material
@@ -48,28 +36,26 @@ public:
 	V3 position = {0, 0, 0};
 	V3 scale = {1, 1, 1};
 
-
 	Mat4 ComputeMatrix() const;
 };
 
-
-class RenderObject
+class Mesh
 {
 public:
-	Transform* transform;
-	Material* material;
-	ArrayPtr<Vertex> vertices;
-	ArrayPtr<Index> indices;
+	Array vertices;
+	Array indices;
 	GLuint vao;
 	GLuint vbo;
 	GLuint ibo;
 
-	RenderObject(ArrayPtr<Vertex> vertices, ArrayPtr<Index> indices);
-	~RenderObject();
+	Mesh(Array vertices,
+	     Array indices);
+
+
+	static Mesh* Triangle();
+
 
 	void Bind() const;
-	void Render() const;
-	static RenderObject* Triangle();
 private:
 	static void AddAttribute(
 		GLuint index,
@@ -77,7 +63,20 @@ private:
 		GLint size,
 		GLsizei stride,
 		uint32_t offset);
-	static void CreateBuffer(ArrayVoidPtr data, GLint type, GLuint hint,
+	static void CreateBuffer(Array data, GLint type, GLuint hint,
 	                         GLuint* bufferId);
+};
+
+class RenderObject
+{
+public:
+	Transform* transform;
+	Material* material;
+	Mesh* mesh;
+
+	RenderObject(Mesh* mesh, Material * material, Transform *transform);
+	~RenderObject();
+
+	void Render() const;
 };
 }

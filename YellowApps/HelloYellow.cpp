@@ -2,6 +2,8 @@
 
 // System
 #include <string>
+#include <iostream>
+#include <stdio.h>
 
 // Engine
 #include "Scene.h"
@@ -10,12 +12,33 @@
 
 bool shouldQuit = false;
 
-void KeyboardCB(uint32_t keyCode)
+void KeyboardCB(int32_t keyCode)
 {
 	if (keyCode == VK_ESCAPE)
 	{
 		shouldQuit = true;
 	}
+}
+
+static Yellow::Scene scene;
+static Yellow::Windows32Platform* platform;
+
+void SwapBuffers()
+{
+	platform->SwapFrameBuffers();
+}
+
+void Render()
+{
+	GLCall(glClearColor(0.5, 0.2, 0.2, 0));
+	GLCall(glClear(GL_COLOR_BUFFER_BIT));
+
+	for (auto& ro : scene.RenderObjects())
+	{
+		ro->Render();
+	}
+
+	SwapBuffers();
 }
 
 int main(int argc, char* argv[])
@@ -24,63 +47,53 @@ int main(int argc, char* argv[])
 	(argc);
 	(argv);
 
-	std::wstring appName = L"My App";
-	Windows32Platform platform(1000, 1000, appName);
-	platform.SetOnKeyCallback(KeyboardCB);
+    SetCurrentDirectory(L"D:\\Projects\\ProjectYellow\\build\\YellowApps\\Debug");
 
-	Scene scene;
+        int screenWidth = 1500;
+    int screenHeight = 1000;
+	float aspectRatio = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
 
-	std::string vertexShaderPath = "../assets/shaders/OnlyPosition.vert";
-	Shader vShader(vertexShaderPath, GL_VERTEX_SHADER);
+	platform = new Windows32Platform(1000, 1000, L"My App");
+	platform->SetOnKeyCallback(KeyboardCB);
+	platform->SetOnWMPaintCallback(Render);
 
-	std::string fragmentShaderPath = "../assets/shaders/ColorPosition.frag";
-	Shader fShader(fragmentShaderPath, GL_FRAGMENT_SHADER);
+    Shader vShader(L"shaders/OnlyPosition.vert", GL_VERTEX_SHADER);
 
-	Program prog;
+    Shader fShader(L"shaders/ColorPosition.frag", GL_FRAGMENT_SHADER);
+
+    Program prog;
 	prog.Attach(&vShader);
 	prog.Attach(&fShader);
 	prog.Link();
 
-	Material basic;
-	basic.program = &prog;
+	Material material{};
+	material.program = &prog;
 
+	Mesh* triangleMesh = Mesh::Triangle();
 	Transform transforms[2];
-	
+
 	// Fill scene
 	{
-		RenderObject* ro = RenderObject::Triangle();
-		ro->material = &basic;
-		ro->transform = &transforms[0];
-		ro->transform->position = { 0.5,0,0 };
+		RenderObject* ro = new RenderObject(triangleMesh, &material,
+			&transforms[0]);
+		ro->transform->position = { 0.5, 0, 0 };
+		ro->transform->scale = {aspectRatio, 1 , 1};
 		scene.RenderObjects().push_back(ro);
 	}
 	{
-		RenderObject* ro = RenderObject::Triangle();
-		ro->material = &basic;
-		ro->transform = &transforms[1];
-		ro->transform->position = { -0.5,0.25,0 };
+		RenderObject* ro = new RenderObject(triangleMesh, &material,
+		                                    &transforms[1]);
+		ro->transform->position = {-0.5, 0.25, 0};
 		scene.RenderObjects().push_back(ro);
 	}
 
-
-	prog.Bind();
-	while (platform.ProcessMessages())
+	while (platform->ProcessMessages())
 	{
 		if (shouldQuit)
 		{
-			platform.Quit();
+			platform->Quit();
 		}
 
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-		GLCall(glClearColor(0.5, 0.2, 0.2, 0));
-
-		prog.Bind();
-		for (auto& ro : scene.RenderObjects())
-		{
-			ro->Render();
-		}
-
-
-		platform.SwapFrameBuffers();
+		Render();
 	}
 }

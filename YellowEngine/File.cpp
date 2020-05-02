@@ -8,16 +8,17 @@
 
 namespace Yellow
 {
-File::File(std::string& filename)
-	: filename(filename)
+File::File(wchar_t *filename)
 {
 	HANDLE hTextFile = Win32OpenFile(filename);
 
 	if (hTextFile == INVALID_HANDLE_VALUE)
 	{
+
 		char errorMessage[256];
-		snprintf(errorMessage, sizeof(errorMessage),
-		         "File not found : %s", filename.c_str());
+        GetLastError();
+		sprintf(errorMessage, 
+		         "File not found : %ws", filename);
 		throw std::invalid_argument(errorMessage);
 	}
 
@@ -31,13 +32,13 @@ File::File(std::string& filename)
 
 File::~File()
 {
-	delete [] text;
+    
 }
 
-HANDLE File::Win32OpenFile(std::string& filename)
+HANDLE File::Win32OpenFile(wchar_t *filename)
 {
-	return CreateFileA(
-		filename.c_str(),
+	return CreateFile(
+		filename,
 		GENERIC_READ,
 		0,
 		nullptr,

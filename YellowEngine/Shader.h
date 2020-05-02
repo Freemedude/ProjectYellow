@@ -12,13 +12,13 @@ namespace Yellow
 class Shader
 {
 private:
-	std::string& _path;
+	wchar_t * _path;
 	GLuint _type;
 	GLuint _id;
 
 public:
-	Shader(std::string& path, GLuint type);
-	~Shader();
+    Shader(wchar_t *path, GLuint type);
+    ~Shader();
 	GLuint GetId() const;
 
 
