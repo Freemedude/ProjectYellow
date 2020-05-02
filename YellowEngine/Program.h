@@ -2,6 +2,10 @@
 
 #pragma once
 
+// System
+#include <string>
+
+// External
 #include "glad/glad.h"
 
 namespace Yellow {
@@ -13,13 +17,17 @@ class Program
 {
 private:
 	GLuint _id;
+    Shader *_vertexShader = nullptr;
+    Shader *_fragmentShader = nullptr;
+
 	GLint GetLocation(const std::string& name);
+	void Attach(Yellow::Shader *shader) const;
 
 public:
-	Program();
-	~Program();
+    Program(Shader *vertexShader, Shader *fragmentShader);
+    ~Program();
 
-	void Attach(Yellow::Shader *shader) const;
+    void ConstructProgram();
 	void Bind() const;
 	void Link() const;
 

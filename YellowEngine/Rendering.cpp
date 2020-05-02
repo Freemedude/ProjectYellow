@@ -14,6 +14,7 @@ Mat4 Transform::ComputeMatrix() const
 }
 
 
+
 Mesh::Mesh(Array vertices, Array indices)
 	: vertices(vertices), indices(indices)
 {
@@ -21,9 +22,9 @@ Mesh::Mesh(Array vertices, Array indices)
 
 	Bind();
 
-	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &vbo);
+	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &vbo ,"Vertex Buffer");
 	CreateBuffer(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW,
-	             &ibo);
+	             &ibo, "Index Buffer");
 
 	AddAttribute(0, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, pos));
 	AddAttribute(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, col));
@@ -48,10 +49,12 @@ void Mesh::AddAttribute(
 }
 
 void Mesh::CreateBuffer(Array data, GLint type, GLuint hint,
-                        OUT GLuint* bufferId)
+                        OUT GLuint* bufferId,
+                        const char * label)
 {
 	GLCall(glGenBuffers(1, bufferId));
 	GLCall(glBindBuffer(type, *bufferId));
+    GLCall(glObjectLabel(GL_BUFFER, *bufferId, -1, label));
 	GLCall(glBufferData(
 		type,
 		static_cast<GLsizeiptr>(data.elementSize * data.count * data.elementSize
@@ -110,5 +113,24 @@ Mesh* Mesh::Triangle()
 	}
 
 	return new Mesh{{vertices, 3, sizeof(Vertex)}, {indices, 3, sizeof(Index)}};
+}
+void GLAPIENTRY
+MessageCallback(GLenum source,
+                GLenum type,
+                GLuint id,
+                GLenum severity,
+                GLsizei length,
+                const GLchar *message,
+                const void *userParam)
+{
+    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+            type, severity, message);
+}
+
+void Initialize()
+{
+    GLCall(glEnable(GL_DEBUG_OUTPUT));
+    GLCall(glDebugMessageCallback(MessageCallback, nullptr));
 }
 }

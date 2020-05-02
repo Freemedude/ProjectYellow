@@ -3,7 +3,7 @@
  * @author: Daniel Gaard Hansen
  * @date: 2020/04/30
  * 
- * @brief 
+ * @brief Contains functions for asset management
  * 
  * 
  */
@@ -16,8 +16,8 @@
 
 namespace Yellow
 {
+wchar_t *GetAssetRootDirectory();
 
 File GetAssetFileByRelativePath(wchar_t * path);
-wchar_t *GetAssetRootDirectory();
 }
 #endif // ASSETMANAGER_H_202004302328

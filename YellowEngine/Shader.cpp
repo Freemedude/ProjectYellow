@@ -25,7 +25,7 @@ Shader::~Shader()
 }
 
 GLuint Shader::GetId() const
-{
+{   
 	return _id;
 }
 

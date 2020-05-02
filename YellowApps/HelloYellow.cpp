@@ -11,6 +11,7 @@
 
 
 bool shouldQuit = false;
+bool shouldReloadShaders = false;
 
 void KeyboardCB(int32_t keyCode)
 {
@@ -18,6 +19,11 @@ void KeyboardCB(int32_t keyCode)
 	{
 		shouldQuit = true;
 	}
+    // Reload shaders
+    if(keyCode == VK_F5)
+    {
+        shouldReloadShaders = true;
+    }
 }
 
 static Yellow::Scene scene;
@@ -61,17 +67,13 @@ int main(int argc, char* argv[])
 
     Shader fShader(L"shaders/ColorPosition.frag", GL_FRAGMENT_SHADER);
 
-    Program prog;
-	prog.Attach(&vShader);
-	prog.Attach(&fShader);
-	prog.Link();
+    Program prog (&vShader, &fShader);
 
 	Material material{};
 	material.program = &prog;
-
 	Mesh* triangleMesh = Mesh::Triangle();
 	Transform transforms[2];
-
+    
 	// Fill scene
 	{
 		RenderObject* ro = new RenderObject(triangleMesh, &material,
@@ -89,6 +91,14 @@ int main(int argc, char* argv[])
 
 	while (platform->ProcessMessages())
 	{
+        if(shouldReloadShaders)
+        {
+            vShader.CompileShader();
+            fShader.CompileShader();
+            prog.Link();
+            shouldReloadShaders = false;
+        }
+
 		if (shouldQuit)
 		{
 			platform->Quit();
