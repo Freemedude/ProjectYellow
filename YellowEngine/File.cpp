@@ -10,24 +10,25 @@ namespace Yellow
 {
 File::File(wchar_t *filename)
 {
-	HANDLE hTextFile = Win32OpenFile(filename);
+	HANDLE hTextFile = Win32OpenExistingFile(filename);
 
 	if (hTextFile == INVALID_HANDLE_VALUE)
 	{
 
+    UINT err = GetLastError();
 		char errorMessage[256];
-        GetLastError();
 		sprintf(errorMessage, 
 		         "File not found : %ws", filename);
 		throw std::invalid_argument(errorMessage);
 	}
 
-
 	fileSize = Win32GetFileSize(hTextFile);
+
 
 	// Create buffer and null terminate
 	text = new char[static_cast<uint32_t>(fileSize) + 1];
 	Win32ReadFile(hTextFile, fileSize, text);
+    CloseHandle(hTextFile);
 }
 
 File::~File()
@@ -35,14 +36,14 @@ File::~File()
     
 }
 
-HANDLE File::Win32OpenFile(wchar_t *filename)
+HANDLE File::Win32OpenExistingFile(wchar_t *filename)
 {
 	return CreateFile(
 		filename,
 		GENERIC_READ,
-		0,
+		FILE_SHARE_WRITE,
 		nullptr,
-		OPEN_ALWAYS,
+		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		nullptr);
 }

@@ -39,6 +39,8 @@ public:
 	Mat4 ComputeMatrix() const;
 };
 
+void Initialize();
+
 class Mesh
 {
 public:
@@ -64,7 +66,7 @@ private:
 		GLsizei stride,
 		uint32_t offset);
 	static void CreateBuffer(Array data, GLint type, GLuint hint,
-	                         GLuint* bufferId);
+	                         GLuint* bufferId, const char * label);
 };
 
 class RenderObject

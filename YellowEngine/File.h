@@ -17,7 +17,7 @@ public:
 	~File();
 
 private:
-    static HANDLE Win32OpenFile(wchar_t *filename);
+    static HANDLE Win32OpenExistingFile(wchar_t *filename);
     static void Win32ReadFile(HANDLE handle, uint64_t fileSize, char* buffer);
 	static uint64_t Win32GetFileSize(HANDLE handle);
 };
