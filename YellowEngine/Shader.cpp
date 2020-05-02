@@ -7,10 +7,12 @@
 #include "File.h"
 #include "OpenGLWrapper.h"
 
+#include "AssetManager.h"
+
 
 namespace Yellow
 {
-Shader::Shader(const std::string& path, GLuint type)
+Shader::Shader(wchar_t *path, GLuint type)
 	: _path(path),
 	  _type(type)
 {
@@ -29,7 +31,7 @@ GLuint Shader::GetId() const
 
 void Shader::CompileShader()
 {
-	File shaderFile(_path);
+	File shaderFile = GetAssetFileByRelativePath(_path);
 
 	GLCall(glShaderSource(_id, 1, &shaderFile.text, nullptr));
 

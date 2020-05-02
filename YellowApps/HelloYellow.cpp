@@ -2,6 +2,8 @@
 
 // System
 #include <string>
+#include <iostream>
+#include <stdio.h>
 
 // Engine
 #include "Scene.h"
@@ -45,19 +47,21 @@ int main(int argc, char* argv[])
 	(argc);
 	(argv);
 
-	int screenWidth = 1500;
-	int screenHeight = 1000;
+    SetCurrentDirectory(L"D:\\Projects\\ProjectYellow\\build\\YellowApps\\Debug");
+
+        int screenWidth = 1500;
+    int screenHeight = 1000;
 	float aspectRatio = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
 
 	platform = new Windows32Platform(1000, 1000, L"My App");
 	platform->SetOnKeyCallback(KeyboardCB);
 	platform->SetOnWMPaintCallback(Render);
 
-	Shader vShader("../assets/shaders/OnlyPosition.vert", GL_VERTEX_SHADER);
+    Shader vShader(L"shaders/OnlyPosition.vert", GL_VERTEX_SHADER);
 
-	Shader fShader("../assets/shaders/ColorPosition.frag", GL_FRAGMENT_SHADER);
+    Shader fShader(L"shaders/ColorPosition.frag", GL_FRAGMENT_SHADER);
 
-	Program prog;
+    Program prog;
 	prog.Attach(&vShader);
 	prog.Attach(&fShader);
 	prog.Link();
