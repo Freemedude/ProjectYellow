@@ -3,9 +3,6 @@
 // System
 #include <iostream>
 
-// Internal
-#include "FileIO.h"
-
 namespace Yellow
 {
 bool directoryContainsFile(TCHAR *directory, TCHAR *file)

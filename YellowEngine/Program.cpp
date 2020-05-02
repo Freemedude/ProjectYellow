@@ -1,23 +1,36 @@
-﻿
+﻿#include "Program.h"
+
+// System
 #include "WindowsWrapper.h"
 #include "OpenGLWrapper.h"
-#include "YellowMath.h"
-#include "Program.h"
+
+// Internal
+#include "YellowMath.h" // Matrix
 #include "Shader.h"
 
 
 namespace Yellow
 {
 
-
-Program::Program()
+Program::Program(Shader *vertexShader, Shader *fragmentShader)
 {
+    _vertexShader = vertexShader;
+    _fragmentShader = fragmentShader;
+
 	GLCallAssign(_id, glCreateProgram());
+    ConstructProgram();
 }
 
 Program::~Program()
 {
 	GLCall(glDeleteProgram(_id));
+}
+
+void Program::ConstructProgram()
+{
+    Attach(_vertexShader);
+    Attach(_fragmentShader);
+    Link();
 }
 
 void Program::Attach(Shader* shader) const

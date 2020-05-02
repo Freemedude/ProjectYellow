@@ -21,9 +21,9 @@ public:
     ~Shader();
 	GLuint GetId() const;
 
+	void CompileShader();
 
 private:
-	void CompileShader();
 	static const WCHAR* ShaderTypeToString(GLuint type);
 };
 }
