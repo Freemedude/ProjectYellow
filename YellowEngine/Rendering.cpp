@@ -85,11 +85,11 @@ void RenderObject::Render() const
 	material->program->Bind();
 	material->program->SetMatrix("u_matrix", transform->ComputeMatrix());
 
-	GLCall(glDrawElements(
+	glDrawElements(
 		GL_TRIANGLES,
 		static_cast<GLsizei>(mesh->indices.count),
 		GL_UNSIGNED_INT,
-		nullptr));
+		nullptr);
 }
 
 Mesh* Mesh::Triangle()
@@ -123,14 +123,17 @@ MessageCallback(GLenum source,
                 const GLchar *message,
                 const void *userParam)
 {
-    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+    char buffer[512];
+    sprintf(buffer, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
             (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
             type, severity, message);
+    
+    std::cout << buffer << std::endl;
 }
 
 void Initialize()
 {
-    GLCall(glEnable(GL_DEBUG_OUTPUT));
+    glEnable(GL_DEBUG_OUTPUT);
     GLCall(glDebugMessageCallback(MessageCallback, nullptr));
 }
 }

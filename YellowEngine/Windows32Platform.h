@@ -7,7 +7,6 @@
 #include "OpenGLWrapper.h"
 #include "WindowsWrapper.h"
 
-
 namespace Yellow
 {
 typedef void(OnKeyCallback)(INT);
@@ -28,11 +27,12 @@ public:
 
     void SetOnKeyCallback(OnKeyCallback cb);
     void SetOnWMPaintCallback(OnWMPaintCallback cb);
+    void CreateExternalConsole(char *title);
 
     bool ProcessMessages();
     void SwapFrameBuffers() const;
-    void Quit();
 
+    void Quit();
 
 private:
     void InitializeOpenGLContext();

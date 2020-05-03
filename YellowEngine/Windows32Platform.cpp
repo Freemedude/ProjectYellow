@@ -22,7 +22,7 @@ namespace Yellow
 static OnKeyCallback *s_onKeyCallback;
 static OnWMPaintCallback *s_onWMPaintCallback;
 
-Yellow::Windows32Platform::Windows32Platform(
+Windows32Platform::Windows32Platform(
     int width,
     int height,
     const std::wstring &title)
@@ -84,7 +84,7 @@ void Windows32Platform::Quit()
     g_shouldQuit = true;
 }
 
-bool Yellow::Windows32Platform::ProcessMessages()
+bool Windows32Platform::ProcessMessages()
 {
     if (g_shouldQuit)
     {
@@ -160,6 +160,26 @@ Yellow::Windows32Platform::CreateDefaultPixelFormatDescriptor()
     pfd.dwDamageMask = 0;
     return pfd;
 }
+
+void Windows32Platform::CreateExternalConsole(char *title)
+{
+        FreeConsole();
+    bool allocatedConsole = AllocConsole();
+    if(allocatedConsole)
+    {
+        SetConsoleTitleA(title);
+        freopen("CONOUT$", "w", stdout);
+        FILE *pDummy;
+        freopen_s(&pDummy, "CONIN$", "r", stdin);
+        freopen_s(&pDummy, "CONOUT$", "w", stderr);
+        freopen_s(&pDummy, "CONOUT$", "w", stdout);
+    }
+    else
+    {
+        // Logging
+    }
+}
+
 } // namespace Yellow
 
 inline LRESULT CALLBACK WindowProc(
