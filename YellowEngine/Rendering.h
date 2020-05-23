@@ -76,9 +76,11 @@ public:
 	Material* material;
 	Mesh* mesh;
 
-	RenderObject(Mesh* mesh, Material * material, Transform *transform);
+	RenderObject();
 	~RenderObject();
 
-	void Render() const;
+    void Create(Mesh *mesh, Material *material, Transform *transform);
+
+        void Render() const;
 };
 }

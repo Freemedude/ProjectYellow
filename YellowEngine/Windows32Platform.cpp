@@ -3,15 +3,18 @@
 // System
 #include <cstdio>
 #include <iostream>
+#include <windows.h>
+#include "wglext.h"
+#include "glext.h"
 
 // External
 #include <glad/glad.h>
 
 inline LRESULT CALLBACK WindowProc(
-    _In_ HWND hwnd,
-    _In_ UINT uMsg,
-    _In_ WPARAM wParam,
-    _In_ LPARAM lParam);
+        _In_ HWND hwnd,
+        _In_ UINT uMsg,
+        _In_ WPARAM wParam,
+        _In_ LPARAM lParam);
 
 bool g_shouldQuit = false;
 
@@ -23,9 +26,9 @@ static OnKeyCallback *s_onKeyCallback;
 static OnWMPaintCallback *s_onWMPaintCallback;
 
 Windows32Platform::Windows32Platform(
-    int width,
-    int height,
-    const std::wstring &title)
+        int width,
+        int height,
+        const std::wstring &title)
 {
     _hInstance = GetModuleHandle(nullptr);
     WNDCLASSEX windowClass{};
@@ -42,13 +45,13 @@ Windows32Platform::Windows32Platform(
     }
 
     _hWindow = CreateWindowEx(
-        WS_EX_CLIENTEDGE,
-        title.c_str(),
-        title.c_str(),
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        width, height,
-        nullptr, nullptr, _hInstance, nullptr);
+            WS_EX_CLIENTEDGE,
+            title.c_str(),
+            title.c_str(),
+            WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT, CW_USEDEFAULT,
+            width, height,
+            nullptr, nullptr, _hInstance, nullptr);
 
     if (!_hWindow)
     {
@@ -119,6 +122,15 @@ void Yellow::Windows32Platform::InitializeOpenGLContext()
     lastError = GetLastError();
 
     wglMakeCurrent(_hDeviceContext, _hOpenGLRenderContext);
+
+    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 0;
+
+    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+    if(wglSwapIntervalEXT)
+    {
+        wglSwapIntervalEXT(0);
+    }
+
     lastError = GetLastError();
     if (!gladLoadGL())
     {
@@ -163,9 +175,9 @@ Yellow::Windows32Platform::CreateDefaultPixelFormatDescriptor()
 
 void Windows32Platform::CreateExternalConsole(char *title)
 {
-        FreeConsole();
+    FreeConsole();
     bool allocatedConsole = AllocConsole();
-    if(allocatedConsole)
+    if (allocatedConsole)
     {
         SetConsoleTitleA(title);
         freopen("CONOUT$", "w", stdout);
@@ -173,8 +185,7 @@ void Windows32Platform::CreateExternalConsole(char *title)
         freopen_s(&pDummy, "CONIN$", "r", stdin);
         freopen_s(&pDummy, "CONOUT$", "w", stderr);
         freopen_s(&pDummy, "CONOUT$", "w", stdout);
-    }
-    else
+    } else
     {
         // Logging
     }
@@ -183,28 +194,28 @@ void Windows32Platform::CreateExternalConsole(char *title)
 } // namespace Yellow
 
 inline LRESULT CALLBACK WindowProc(
-    _In_ HWND hwnd,
-    _In_ UINT uMsg,
-    _In_ WPARAM wParam,
-    _In_ LPARAM lParam)
+        _In_ HWND hwnd,
+        _In_ UINT uMsg,
+        _In_ WPARAM wParam,
+        _In_ LPARAM lParam)
 {
     switch (uMsg)
     {
-    case WM_KEYDOWN:
+        case WM_KEYDOWN:
 
-        if (Yellow::s_onKeyCallback)
-            Yellow::s_onKeyCallback(wParam);
-        break;
-    case WM_PAINT:
-        if (Yellow::s_onWMPaintCallback)
-            Yellow::s_onWMPaintCallback();
-        break;
-    case WM_CLOSE:
-        g_shouldQuit = true;
-        return 0;
-    case WM_DESTROY:
-        g_shouldQuit = true;
-        return 0;
+            if (Yellow::s_onKeyCallback)
+                Yellow::s_onKeyCallback(wParam);
+            break;
+        case WM_PAINT:
+            if (Yellow::s_onWMPaintCallback)
+                Yellow::s_onWMPaintCallback();
+            break;
+        case WM_CLOSE:
+            g_shouldQuit = true;
+            return 0;
+        case WM_DESTROY:
+            g_shouldQuit = true;
+            return 0;
     }
 
     return ::DefWindowProc(hwnd, uMsg, wParam, lParam);

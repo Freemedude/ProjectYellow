@@ -69,12 +69,18 @@ void Mesh::Bind() const
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 }
 
-RenderObject::RenderObject(Mesh* mesh, Material* material, Transform* transform)
-	: mesh(mesh), material(material), transform(transform)
+RenderObject::RenderObject()
 {
 }
 
-RenderObject::~RenderObject()
+void RenderObject::Create(Mesh *mesh, Material *material, Transform *transform)
+{
+    this->mesh = mesh;
+    this->material = material;
+    this->transform = transform;
+}
+
+    RenderObject::~RenderObject()
 {
 }
 
