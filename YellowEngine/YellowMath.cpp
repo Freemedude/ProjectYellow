@@ -1,1 +1,0 @@
-﻿#include "YellowMath.h"
