@@ -55,9 +55,8 @@ private:
 	                         GLuint* bufferId, const char * label);
 };
 
-class RenderObject
+struct RenderObject
 {
-public:
 	Transform* transform;
 	Material* material;
 	Mesh* mesh;
@@ -68,5 +67,11 @@ public:
 	void Create(Mesh *mesh, Material *material, Transform *transform);
 
 	void Render() const;
+};
+
+struct Scene
+{
+	RenderObject* renderObjects;
+	u32 numObjects;
 };
 }

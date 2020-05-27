@@ -3,127 +3,238 @@
 // Third party
 #include "glad/glad.c"
 
-// Unity build
 #include "asset_manager.cpp"
-#include "file.cpp"
 #include "program.cpp"
 #include "rendering.cpp"
-#include "scene.cpp"
 #include "shader.cpp"
 #include "timers.cpp"
-#include "win32_platform.cpp"
+#include "yellow.cpp"
 
-bool shouldQuit = false;
-bool shouldReloadShaders = false;
+#define Assert(expr) if(!expr) {printf("Assertion failed (" ## __FILE__ ## ", " ## __LINE__ ## ")\n" ## #expr  );} else{}
 
-void KeyboardCB(int32_t keyCode)
+PIXELFORMATDESCRIPTOR
+CreateDefaultPixelFormatDescriptor()
+{
+    PIXELFORMATDESCRIPTOR pfd;
+    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd.nVersion = 1; // Must be one
+    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    pfd.iPixelType = PFD_TYPE_RGBA;
+    pfd.cColorBits = 24;
+    pfd.cRedBits = 0;
+    pfd.cRedShift = 0;
+    pfd.cGreenBits = 0;
+    pfd.cGreenShift = 0;
+    pfd.cBlueBits = 0;
+    pfd.cBlueShift = 0;
+    pfd.cAlphaBits = 0;
+    pfd.cAlphaShift = 0;
+    pfd.cAccumBits = 0;
+    pfd.cAccumRedBits = 0;
+    pfd.cAccumGreenBits = 0;
+    pfd.cAccumBlueBits = 0;
+    pfd.cAccumAlphaBits = 0;
+    pfd.cDepthBits = 32;
+    pfd.cStencilBits = 0;
+    pfd.cAuxBuffers = 0;
+    pfd.iLayerType = PFD_MAIN_PLANE;
+    pfd.bReserved = 0;
+    pfd.dwLayerMask = 0;
+    pfd.dwVisibleMask = 0;
+    pfd.dwDamageMask = 0;
+    return pfd;
+}
+
+void PlatformReadFile(const char* path, File *file)
+{
+    HANDLE hTextFile = CreateFile(
+                           path,
+                           GENERIC_READ,
+                           FILE_SHARE_WRITE,
+                           nullptr,
+                           OPEN_EXISTING,
+                           FILE_ATTRIBUTE_NORMAL,
+                           nullptr);
+
+
+    if (hTextFile == INVALID_HANDLE_VALUE)
+    {
+
+        UINT err = GetLastError();
+        char errorMessage[256];
+        sprintf(errorMessage,
+                "File not found : %s", filename);
+        throw std::invalid_argument(errorMessage);
+    }
+
+    LARGE_INTEGER fileSize;
+    GetFileSizeEx(handle, &fileSize);
+
+
+// Create buffer and null terminate
+    text = new char[static_cast<u32>(fileSize) + 1];
+    // bytesRead not used.
+    DWORD bytesRead;
+    ReadFile(handle, buffer, static_cast<uint32_t>(fileSize.QuadPart), &bytesRead, nullptr);
+    buffer[fileSize] = 0;
+    file->sizeSize = fileSize.QuadPart;
+    CloseHandle(hTextFile);
+
+
+}
+
+void CreateGLRenderContext(HDC deviceContext)
+{
+    i32 error = 0;
+
+    HGLRC glRenderContext = wglCreateContext(deviceContext);
+
+    PIXELFORMATDESCRIPTOR pfd = CreateDefaultPixelFormatDescriptor();
+
+    int pixelFormatNumber = ChoosePixelFormat(deviceContext, &pfd);
+
+    bool setFormat = SetPixelFormat(deviceContext, pixelFormatNumber, &pfd);
+
+
+
+    wglMakeCurrent(deviceContext, glRenderContext);
+
+    // Set VSync
+    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)
+            wglGetProcAddress("wglSwapIntervalEXT");
+    if (wglSwapIntervalEXT)
+    {
+        wglSwapIntervalEXT(0);
+    }
+
+    error = GetLastError();
+    if (!gladLoadGL())
+    {
+        printf("Failed to load GLAD\n");
+    }
+
+    printf("OpenGL Version: %d.%d\n", GLVersion.major, GLVersion.minor);
+}
+
+void KeyboardCB(int32_t keyCode, GameInput* input)
 {
     if (keyCode == VK_ESCAPE)
     {
-        shouldQuit = true;
+        input->quit = true;
     }
-    // Reload shaders
     if (keyCode == VK_F5)
     {
-        shouldReloadShaders = true;
+        input->reload_shaders = true;
     }
-}
-
-static Yellow::Scene scene;
-static Yellow::Windows32Platform *platform;
-
-void MoveObjectBackAndForth(Yellow::RenderObject *ro)
-{
-    Yellow::V3 *pos = &ro->transform->position;
-    static float moveObjectDelta = 0.001;
-    pos->m[0] += moveObjectDelta;
-
-    if (pos->m[0] < -0.5 || pos->m[0] > 0.5)
-    {
-        moveObjectDelta *= -1;
-    }
-}
-
-void SwapBuffers()
-{
-    platform->SwapFrameBuffers();
-}
-
-void Render()
-{
-    GLCall(glClearColor(0.5, 0.2, 0.2, 0));
-    GLCall(glClear(GL_COLOR_BUFFER_BIT));
-
-    for (auto &ro : scene.RenderObjects())
-    {
-        ro->Render();
-    }
-
-    SwapBuffers();
 }
 
 void checkAssetDirectory()
 {
-    wchar_t *assetRootDirectory = Yellow::GetAssetRootDirectory();
+    char *assetRootDirectory = Yellow::GetAssetRootDirectory();
     if (assetRootDirectory)
     {
-        printf("Found root asset directory: %ws\n", assetRootDirectory);
+        printf("Found root asset directory: %s\n", assetRootDirectory);
     } else
     {
         printf("Could not find asset root\n");
     }
 }
 
+void CreateExternalConsole(char *title)
+{
+    FreeConsole();
+    bool allocatedConsole = AllocConsole();
+    if (allocatedConsole)
+    {
+        SetConsoleTitleA(title);
+        freopen("CONOUT$", "w", stdout);
+        FILE *pDummy;
+        freopen_s(&pDummy, "CONIN$", "r", stdin);
+        freopen_s(&pDummy, "CONOUT$", "w", stderr);
+        freopen_s(&pDummy, "CONOUT$", "w", stdout);
+    } else
+    {
+        // Logging
+    }
+}
 
-int main(int argc, char *argv[])
+
+inline LRESULT CALLBACK WindowProc(
+    _In_ HWND hwnd,
+    _In_ UINT uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_KEYDOWN:
+
+        break;
+    case WM_PAINT:
+        break;
+    case WM_CLOSE:
+        return 0;
+    case WM_DESTROY:
+        return 0;
+    }
+
+    return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+int WinMain(HINSTANCE hInstance,
+            HINSTANCE hPrevInstance,
+            LPSTR arguments,
+            int showCode)
 {
     using namespace Yellow;
-    (argc);
-    (argv);
 
-    platform = new Windows32Platform(1000, 1000, L"My App");
-    platform->SetOnKeyCallback(KeyboardCB);
-    platform->SetOnWMPaintCallback(Render);
-    platform->CreateExternalConsole("HelloYellow Console!");
+    // Create window
+    WNDCLASSEXA windowClass{};
+    windowClass.hInstance = hInstance;
+    windowClass.lpszClassName = "App";
+    windowClass.lpfnWndProc = WindowProc;
+    windowClass.cbSize = sizeof(windowClass);
+    windowClass.style = CS_OWNDC;
+    windowClass.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
+    windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+    GetLastError()
+
+    if (!RegisterClassEx(&windowClass))
+    {
+        u16 error = GetLastError();
+        printf("Failed to register class: (Error Code: %d)", error);
+        return -1;
+    }
+
+    HWND hWindow = CreateWindowEx(
+                       WS_EX_CLIENTEDGE,
+                       "App",
+                       "App",
+                       WS_OVERLAPPEDWINDOW,
+                       CW_USEDEFAULT, CW_USEDEFAULT,
+                       720, 480,
+                       nullptr, nullptr, hInstance, nullptr);
+
+    if (!hWindow)
+    {
+        u16 error = GetLastError();
+        printf("Failed to create window: (Error Code: %d)", error);
+        return -1;
+    }
+
+    ShowWindow(hWindow, showCode);
+    UpdateWindow(hWindow);
+    InitializeOpenGLContext();
+
 
     checkAssetDirectory();
 
-
-    Yellow::Initialize();
-
+    GameInitialize();
 
     int screenWidth = 1500;
     int screenHeight = 1000;
     float aspectRatio = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
 
-
-    Shader vShader(L"shaders/OnlyPosition.vert", GL_VERTEX_SHADER);
-    Shader fShader(L"shaders/ColorPosition.frag", GL_FRAGMENT_SHADER);
-    Program prog(&vShader, &fShader);
-
-    RenderObject objects[2];
-
-    RenderObject imported = ImportModelOBJ(L"models/test.obj");
-
-    Material material{};
-    material.program = &prog;
-    Mesh *triangleMesh = Mesh::Triangle();
-    Transform transforms[2];
-
-    // Fill scene
-    {
-        objects[0].Create(triangleMesh, &material,
-                          &transforms[0]);
-        objects[0].transform->position = {0.5, 0, 0};
-        objects[0].transform->scale = {aspectRatio, 1, 1};
-        scene.RenderObjects().push_back(&objects[0]);
-    }
-    {
-        objects[1].Create(triangleMesh, &material,
-                          &transforms[1]);
-        objects[1].transform->position = {-0.5, 0.25, 0};
-        scene.RenderObjects().push_back(&objects[1]);
-    }
 
     Timer mainLoopTimer("Main Loop");
     double secondsPerFrame = 1.0 / 60.0;
@@ -132,23 +243,22 @@ int main(int argc, char *argv[])
     u64 minFrameTimeInMicros = (u64) microsPerFrame;
     u64 totalFrameTime = 0;
     u64 numFrames = 0;
-    while (true)
+    bool running;
+    while ()
     {
+        TimerStart(&mainLoopTimer);
         mainLoopTimer.Start();
 
         numFrames++;
 
+        MSG msg;
+
+        while (PeekMessage(&smg, , 0, 0, PM_REMOVE))
         {
-            if (!platform->ProcessMessages())
-            {
-                break;
-            }
+            TranslateMessage(&_message);
+            DispatchMessage(&_message);
         }
 
-        if (shouldQuit)
-        {
-            platform->Quit();
-        }
 
         if (shouldReloadShaders)
         {
@@ -158,9 +268,7 @@ int main(int argc, char *argv[])
             shouldReloadShaders = false;
         }
 
-        MoveObjectBackAndForth(scene.RenderObjects()[1]);
-
-        Render();
+        GameUpdateAndRender();
 
         u64 frameTimeInMicros = mainLoopTimer.GetTicksInUnit(TimeUnit::MicroSeconds);
 
@@ -172,7 +280,6 @@ int main(int argc, char *argv[])
         {
             u64 timeToSleep = frameTimeTargetDifference / 1000 - 1;
 
-            std::cout << "Sleeping for " << timeToSleep << "ms" << std::endl;
             Sleep(timeToSleep);
             frameTimeInMicros = mainLoopTimer.GetTicksInUnit(TimeUnit::MicroSeconds);
         }
@@ -180,9 +287,9 @@ int main(int argc, char *argv[])
         double frameRate = 1.0 / (double) frameTimeInMicros;
         frameRate *= 1000000;
 
-        std::cout << "FrameTime ("
-                  << totalFrameTime / numFrames << "/" << minFrameTimeInMicros << "us) - "
-                  << frameRate << "FPS"
-                  << std::endl;
+        double frameTime = (double)totalFrameTime / (double)numFrames;
+        printf("\rFrame time: (%.1fus/%lluus) - %.1fFPS", frameTime, minFrameTimeInMicros, frameRate);
+
+        wglSwapLayerBuffers(_hDeviceContext, WGL_SWAP_MAIN_PLANE);
     }
 }

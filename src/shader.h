@@ -1,13 +1,9 @@
-﻿namespace Yellow
+﻿struct Shader
 {
-class Shader
-{
-private:
-	wchar_t * _path;
-	GLuint _type;
-	GLuint _id;
-
-public:
+	char_t *_path;
+	GLuint type;
+	GLuint id;
+};
     Shader(wchar_t *path, GLuint type);
     ~Shader();
 	GLuint GetId() const;

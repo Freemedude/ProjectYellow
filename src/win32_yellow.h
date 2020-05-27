@@ -16,15 +16,21 @@
 #include <gl/wglext.h>
 
 // Project
+
+//   Isolated
 #include "yellow_math.h"
 #include "integers.h"
-#include "opengl_wrapper.h"
+#include "timers.h"
+
+//   Misc
+#include "platform.h"
+
+//   Rendering
 #include "shader.h"
 #include "program.h"
 #include "rendering.h"
-#include "scene.h"
-#include "file.h"
+
+//   Wide
+#include "yellow.h"
+
 #include "asset_manager.h"
-#include "importing.h"
-#include "timers.h"
-#include "win32_platform.h"

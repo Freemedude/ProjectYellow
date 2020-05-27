@@ -4,17 +4,22 @@ if not exist build mkdir build
 
 pushd build
 
-
-set argument=%1
+set libs=user32.lib gdi32.lib Opengl32.lib
+set flags=-Od -EHsc -Fd -Zi -nologo
+set includes=-I../ext -I../src
 
 call vcvarsall.bat x64
-cl ../src/win32_yellow.cpp -Od -EHsc -Fd -Zi -nologo -I../ext -I../src user32.lib gdi32.lib Opengl32.lib
+cl ../src/win32_yellow.cpp %flags% %includes% %libs%
 
-if defined argument (
-	if "%argument%"=="run" (
+set run_mode=%1
+
+rem If we compiled well, run
+if %errorlevel%==0 (
+	echo Build successful
+	if "%run_mode%"=="run" (
 		win32_yellow.exe
 	)
-	if "%argument%"=="debug" (
+	if "%run_mode%"=="debug" (
 		remedybg open-session "../debug/yellow.rdbg"
 	)
 )
