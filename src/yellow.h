@@ -1,4 +1,2 @@
-struct Scene
-{
-	std::vector<RenderObject*> RenderObjects;
-};
+#define NULLABLE
+#define OUT

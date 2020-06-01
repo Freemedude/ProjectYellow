@@ -26,11 +26,8 @@
 #include "platform.h"
 
 //   Rendering
-#include "shader.h"
-#include "program.h"
 #include "rendering.h"
-
-//   Wide
-#include "yellow.h"
-
 #include "asset_manager.h"
+
+//   
+#include "yellow.h"

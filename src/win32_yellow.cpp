@@ -4,13 +4,13 @@
 #include "glad/glad.c"
 
 #include "asset_manager.cpp"
-#include "program.cpp"
 #include "rendering.cpp"
-#include "shader.cpp"
 #include "timers.cpp"
 #include "yellow.cpp"
 
 #define Assert(expr) if(!expr) {printf("Assertion failed (" ## __FILE__ ## ", " ## __LINE__ ## ")\n" ## #expr  );} else{}
+
+GameInput g_game_input;
 
 PIXELFORMATDESCRIPTOR
 CreateDefaultPixelFormatDescriptor()
@@ -45,9 +45,13 @@ CreateDefaultPixelFormatDescriptor()
     return pfd;
 }
 
-void PlatformReadFile(const char* path, File *file)
+File ReadFile(const char* path, bool *success)
 {
-    HANDLE hTextFile = CreateFile(
+    File result;
+
+    strncpy(result.filename, path, MAX_FILE_PATH_LENGTH);
+
+    HANDLE hTextFile = CreateFileA(
                            path,
                            GENERIC_READ,
                            FILE_SHARE_WRITE,
@@ -63,24 +67,26 @@ void PlatformReadFile(const char* path, File *file)
         UINT err = GetLastError();
         char errorMessage[256];
         sprintf(errorMessage,
-                "File not found : %s", filename);
-        throw std::invalid_argument(errorMessage);
+                "File not found : %s", result.filename);
+        *success = false;
+        return result;
     }
 
     LARGE_INTEGER fileSize;
-    GetFileSizeEx(handle, &fileSize);
+    GetFileSizeEx(hTextFile, &fileSize);
+    result.size_in_bytes = fileSize.QuadPart;
 
+    // Create buffer and null terminate
+    result.text = new char[result.size_in_bytes + 1];
 
-// Create buffer and null terminate
-    text = new char[static_cast<u32>(fileSize) + 1];
     // bytesRead not used.
     DWORD bytesRead;
-    ReadFile(handle, buffer, static_cast<uint32_t>(fileSize.QuadPart), &bytesRead, nullptr);
-    buffer[fileSize] = 0;
-    file->sizeSize = fileSize.QuadPart;
+    ReadFile(hTextFile, result.text, result.size_in_bytes, &bytesRead, nullptr);
+    result.text[result.size_in_bytes] = 0;
     CloseHandle(hTextFile);
 
-
+    *success = true;
+    return result;
 }
 
 void CreateGLRenderContext(HDC deviceContext)
@@ -130,7 +136,7 @@ void KeyboardCB(int32_t keyCode, GameInput* input)
 
 void checkAssetDirectory()
 {
-    char *assetRootDirectory = Yellow::GetAssetRootDirectory();
+    char *assetRootDirectory = GetAssetRootDirectory();
     if (assetRootDirectory)
     {
         printf("Found root asset directory: %s\n", assetRootDirectory);
@@ -186,8 +192,6 @@ int WinMain(HINSTANCE hInstance,
             LPSTR arguments,
             int showCode)
 {
-    using namespace Yellow;
-
     // Create window
     WNDCLASSEXA windowClass{};
     windowClass.hInstance = hInstance;
@@ -197,16 +201,15 @@ int WinMain(HINSTANCE hInstance,
     windowClass.style = CS_OWNDC;
     windowClass.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    GetLastError()
-
-    if (!RegisterClassEx(&windowClass))
+    
+    if (!RegisterClassExA(&windowClass))
     {
         u16 error = GetLastError();
         printf("Failed to register class: (Error Code: %d)", error);
         return -1;
     }
 
-    HWND hWindow = CreateWindowEx(
+    HWND hWindow = CreateWindowExA(
                        WS_EX_CLIENTEDGE,
                        "App",
                        "App",
@@ -222,9 +225,12 @@ int WinMain(HINSTANCE hInstance,
         return -1;
     }
 
+    HDC hdc = GetDC(hWindow);
+    CreateGLRenderContext(hdc);
+
     ShowWindow(hWindow, showCode);
     UpdateWindow(hWindow);
-    InitializeOpenGLContext();
+
 
 
     checkAssetDirectory();
@@ -236,7 +242,7 @@ int WinMain(HINSTANCE hInstance,
     float aspectRatio = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
 
 
-    Timer mainLoopTimer("Main Loop");
+    Timer mainLoopTimer = CreateTimer("Main Loop");
     double secondsPerFrame = 1.0 / 60.0;
     double microsPerFrame = secondsPerFrame * 1000000.0;
 
@@ -244,22 +250,21 @@ int WinMain(HINSTANCE hInstance,
     u64 totalFrameTime = 0;
     u64 numFrames = 0;
     bool running;
-    while ()
+    while (true)
     {
         TimerStart(&mainLoopTimer);
-        mainLoopTimer.Start();
-
+        
         numFrames++;
 
-        MSG msg;
+        MSG msg {};
 
-        while (PeekMessage(&smg, , 0, 0, PM_REMOVE))
+        while (PeekMessageA(&msg, hWindow, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&_message);
-            DispatchMessage(&_message);
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
         }
 
-
+#if 0
         if (shouldReloadShaders)
         {
             vShader.CompileShader();
@@ -267,10 +272,10 @@ int WinMain(HINSTANCE hInstance,
             prog.Link();
             shouldReloadShaders = false;
         }
+#endif
+        GameUpdateAndRender(&g_game_input);
 
-        GameUpdateAndRender();
-
-        u64 frameTimeInMicros = mainLoopTimer.GetTicksInUnit(TimeUnit::MicroSeconds);
+        u64 frameTimeInMicros = TimerGetTicks(&mainLoopTimer, TimeUnit::MicroSeconds);
 
         totalFrameTime += frameTimeInMicros;
 
@@ -281,7 +286,7 @@ int WinMain(HINSTANCE hInstance,
             u64 timeToSleep = frameTimeTargetDifference / 1000 - 1;
 
             Sleep(timeToSleep);
-            frameTimeInMicros = mainLoopTimer.GetTicksInUnit(TimeUnit::MicroSeconds);
+            frameTimeInMicros = TimerGetTicks(&mainLoopTimer, TimeUnit::MicroSeconds);
         }
 
         double frameRate = 1.0 / (double) frameTimeInMicros;
@@ -290,6 +295,6 @@ int WinMain(HINSTANCE hInstance,
         double frameTime = (double)totalFrameTime / (double)numFrames;
         printf("\rFrame time: (%.1fus/%lluus) - %.1fFPS", frameTime, minFrameTimeInMicros, frameRate);
 
-        wglSwapLayerBuffers(_hDeviceContext, WGL_SWAP_MAIN_PLANE);
+        wglSwapLayerBuffers(hdc, WGL_SWAP_MAIN_PLANE);
     }
 }

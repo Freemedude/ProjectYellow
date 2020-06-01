@@ -1,6 +1,3 @@
-namespace Yellow
-{
-
 void print_timer_duration(const std::string &label, Duration duration)
 {
     Millis time = std::chrono::duration_cast<Millis>(duration);
@@ -23,50 +20,56 @@ ScopedTimer::~ScopedTimer()
 }
 
 
-Timer::Timer(const std::string &label, bool startRunning)
-        : label(label), running(startRunning), start(Time::now())
-{}
-
-Timer::~Timer() = default;
-
-void Timer::Report()
+Timer CreateTimer(const char* label)
 {
-    print_timer_duration(label, GetDuration());
+    Timer result {};
+
+    result.label = label;
+    result.start = Time::now();
+    return result;
 }
 
-Duration Timer::GetDuration() const
+void TimerPrint(Timer *timer)
 {
-    Duration duration;
-    if (running)
+    print_timer_duration(timer->label, TimerGetDuration(timer));
+}
+
+Duration TimerGetDuration(Timer *timer)
+{
+    Duration result {};
+
+    if (timer->running)
     {
-        duration = Time::now() - start;
+        result = Time::now() - timer->start;
     } else
     {
-        duration = end - start;
+        result = timer->end - timer->start;
     }
-    return duration;
+    return result;
 }
 
-void Timer::Start()
+
+void TimerStart(Timer *timer)
 {
-    start = Time::now();
-    running = true;
+    timer->running = true;
+}
+void TimerEnd(Timer *timer)
+{
+    timer->end = Time::now();
+    timer->running = false;
 }
 
-void Timer::Resume()
+void TimerResume(Timer *timer)
 {
-    running = true;
+    timer->running = true;
 }
 
-void Timer::Stop()
-{
-    end = Time::now();
-    running = false;
-}
 
-u64 Timer::GetTicksInUnit(TimeUnit unit) const
+u64 TimerGetTicks(Timer *timer, TimeUnit unit)
 {
-    Duration duration = GetDuration();
+    u64 result = 0;
+
+    Duration duration = TimerGetDuration(timer);
 
     switch (unit)
     {
@@ -74,22 +77,20 @@ u64 Timer::GetTicksInUnit(TimeUnit unit) const
         case TimeUnit::Seconds:
         {
             auto time = std::chrono::duration_cast<Seconds>(duration);
-            return time.count();
+            result = time.count();
         }
         case TimeUnit::MilliSeconds:
         {
 
             auto time = std::chrono::duration_cast<Millis>(duration);
-            return time.count();
+            result = time.count();
         }
         case TimeUnit::MicroSeconds:
         {
             auto time = std::chrono::duration_cast<Micros>(duration);
-            return time.count();
+            result = time.count();
         }
     }
     std::cout << "Unknown TimeUnit:" << (int)unit <<std::endl;
-    return 0;
+    return result;
 }
-
-} // namespace Yellow

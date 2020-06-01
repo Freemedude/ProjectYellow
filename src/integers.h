@@ -10,3 +10,5 @@ typedef int64_t i64;
 
 typedef intptr_t smem;
 typedef uintptr_t umem;
+
+typedef unsigned int uint;

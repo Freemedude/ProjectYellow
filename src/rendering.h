@@ -1,7 +1,4 @@
-﻿namespace Yellow
-{
-
-typedef uint32_t Index;
+﻿typedef uint32_t Index;
 
 struct Array
 {
@@ -10,68 +7,84 @@ struct Array
 	uint64_t elementSize;
 };
 
-class Material
+enum ShaderType
 {
-public:
-	Program* program;
+	ShaderType_VertexShader = GL_VERTEX_SHADER,
+	ShaderType_FragmentShader = GL_FRAGMENT_SHADER
 };
 
-class Transform
+struct Shader
 {
-public:
-	V3 position = {0, 0, 0};
-	V3 scale = {1, 1, 1};
-
-	Mat4 ComputeMatrix() const;
+	char path[MAX_FILE_PATH_LENGTH];
+	ShaderType type;
+	uint id;
 };
+
+
+/**
+ * \param path Path to the shader file
+ * \param shaderType Type of shader
+ * \param success Success status of shader creation, can be null.
+ */
+Shader CreateShader(char *path, uint shaderType, bool* success);
+
+void CompileShader(Shader *shader);
+
+const char* ShaderTypeToString(GLuint type);
+
+struct ShaderProgram
+{
+	uint id;
+	Shader *vertex_shader;
+	Shader *fragment_shader;
+};
+
+ShaderProgram CreateShaderProgram(Shader *vs, Shader *fs);
+
+struct Material
+{
+	ShaderProgram* program;
+};
+
+struct Transform
+{
+	V3 position;
+	V3 scale;
+
+};
+
+Transform CreateTransform();
+
+Mat4 ComputeTransformationMatrix(Transform *transform);
 
 void Initialize();
 
-class Mesh
+struct Mesh
 {
-public:
 	Array vertices;
 	Array indices;
 	GLuint vao;
 	GLuint vbo;
 	GLuint ibo;
-
-	Mesh(Array vertices,
-	     Array indices);
-
-
-	static Mesh* Triangle();
-
-
-	void Bind() const;
-private:
-	static void AddAttribute(
-	    GLuint index,
-	    GLuint type,
-	    GLint size,
-	    GLsizei stride,
-	    uint64_t offset);
-	static void CreateBuffer(Array data, GLint type, GLuint hint,
-	                         GLuint* bufferId, const char * label);
 };
+
+Mesh CreateMesh(Array vertices, Array indices);
+void BindMesh(Mesh *mesh);
+
+Mesh CreateDemoMeshTriangle();
 
 struct RenderObject
 {
-	Transform* transform;
+	Transform transform;
 	Material* material;
 	Mesh* mesh;
-
-	RenderObject();
-	~RenderObject();
-
-	void Create(Mesh *mesh, Material *material, Transform *transform);
-
-	void Render() const;
 };
+
+RenderObject CreateRenderObject(Mesh *mesh, Material* material, Transform transform);
+void RenderRenderObject(RenderObject* ro);
 
 struct Scene
 {
-	RenderObject* renderObjects;
-	u32 numObjects;
+	RenderObject* objects;
+	u32 object_count;
 };
-}

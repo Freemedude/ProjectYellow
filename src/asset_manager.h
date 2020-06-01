@@ -7,12 +7,9 @@
  *
  *
  */
-#define ASSET_ROOT_FILENAME L"project_yellow_asset_root.txt"
+#define ASSET_ROOT_FILENAME "project_yellow_asset_root.txt"
 
-namespace Yellow
-{
-wchar_t *GetAssetRootDirectory();
-RenderObject ImportModelOBJ(wchar_t *path);
+char *GetAssetRootDirectory();
+RenderObject ImportModelOBJ(char *path);
 
-File GetAssetFileByRelativePath(wchar_t * path);
-}
+File GetAssetFileByRelativePath(char * path);
