@@ -12,4 +12,4 @@
 char *GetAssetRootDirectory();
 RenderObject ImportModelOBJ(char *path);
 
-File GetAssetFileByRelativePath(char * path);
+File AssetManagerGetFile(char * path, bool *success);

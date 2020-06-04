@@ -1,24 +1,39 @@
-static Scene scene;
-static Mesh triangleMesh = CreateDemoMeshTriangle();
 
-void GameInitialize()
+
+//-------------------------------------------
+// Globals
+//-------------------------------------------
+
+// TODO (danh): Move all of these into heap.
+Scene scene;
+Mesh triangleMesh;
+
+Shader vShader;
+Shader fShader;
+ShaderProgram program;
+
+Material material;
+
+void 
+GameInitialize()
 {
-
+	triangleMesh = CreateDemoMeshTriangle();
 	bool success = false;
-	Shader vShader = CreateShader("shaders/OnlyPosition.vert", ShaderType_VertexShader, &success);
-	Shader fShader = CreateShader("shaders/ColorPosition.frag", ShaderType_FragmentShader, &success);
-	ShaderProgram prog = CreateShaderProgram(&vShader, &fShader);
+	vShader = CreateShader("shaders/OnlyPosition.vert", ShaderType_VertexShader, &success);
+	fShader = CreateShader("shaders/ColorPosition.frag", ShaderType_FragmentShader, &success);
+	program = CreateShaderProgram(&vShader, &fShader);
 
-	Material material{};
-	material.program = &prog;
+	material.program = &program;
 
 	scene.objects = new RenderObject[2];
 
 	scene.objects[0] = CreateRenderObject(&triangleMesh, &material, {{0.5 , 0, 0}, {0.5, 1, 1}});
 	scene.objects[1] = CreateRenderObject(&triangleMesh, &material, {{-0.5, 0.25, 0}, {1, 1, 1}});
+	scene.object_count = 2;
 }
 
-void MoveObjectBackAndForth(RenderObject *ro)
+void
+MoveObjectBackAndForth(RenderObject *ro)
 {
 	V3 *pos = &ro->transform.position;
 	static float moveObjectDelta = 0.001;
@@ -30,7 +45,8 @@ void MoveObjectBackAndForth(RenderObject *ro)
 	}
 }
 
-void RenderScene(Scene *scene)
+void 
+RenderScene(Scene *scene)
 {
 	glClearColor(0.5, 0.2, 0.2, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -42,7 +58,8 @@ void RenderScene(Scene *scene)
 	}
 }
 
-void GameUpdateAndRender(GameInput* input)
+void 
+GameUpdateAndRender(GameInput* input)
 {
 	MoveObjectBackAndForth(&scene.objects[1]);
 	RenderScene(&scene);

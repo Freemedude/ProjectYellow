@@ -12,40 +12,36 @@
 
 GameInput g_game_input;
 
+const char* g_appname = "Project Yellow";
+bool g_running = true;
+
 PIXELFORMATDESCRIPTOR
 CreateDefaultPixelFormatDescriptor()
 {
-    PIXELFORMATDESCRIPTOR pfd;
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1; // Must be one
-    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cRedBits = 0;
-    pfd.cRedShift = 0;
-    pfd.cGreenBits = 0;
-    pfd.cGreenShift = 0;
-    pfd.cBlueBits = 0;
-    pfd.cBlueShift = 0;
-    pfd.cAlphaBits = 0;
-    pfd.cAlphaShift = 0;
-    pfd.cAccumBits = 0;
-    pfd.cAccumRedBits = 0;
-    pfd.cAccumGreenBits = 0;
-    pfd.cAccumBlueBits = 0;
-    pfd.cAccumAlphaBits = 0;
-    pfd.cDepthBits = 32;
-    pfd.cStencilBits = 0;
-    pfd.cAuxBuffers = 0;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-    pfd.bReserved = 0;
-    pfd.dwLayerMask = 0;
-    pfd.dwVisibleMask = 0;
-    pfd.dwDamageMask = 0;
+    PIXELFORMATDESCRIPTOR pfd =
+    {
+        sizeof(PIXELFORMATDESCRIPTOR),
+        1,
+        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,    // Flags
+        PFD_TYPE_RGBA,        // The kind of framebuffer. RGBA or palette.
+        32,                   // Colordepth of the framebuffer.
+        0, 0, 0, 0, 0, 0,
+        0,
+        0,
+        0,
+        0, 0, 0, 0,
+        24,                   // Number of bits for the depthbuffer
+        8,                    // Number of bits for the stencilbuffer
+        0,                    // Number of Aux buffers in the framebuffer.
+        PFD_MAIN_PLANE,
+        0,
+        0, 0, 0
+    };
     return pfd;
 }
 
-File ReadFile(const char* path, bool *success)
+File
+ReadFile(const char* path, bool *success)
 {
     File result;
 
@@ -89,11 +85,10 @@ File ReadFile(const char* path, bool *success)
     return result;
 }
 
-void CreateGLRenderContext(HDC deviceContext)
+void
+CreateGLRenderContext(HDC deviceContext)
 {
     i32 error = 0;
-
-    HGLRC glRenderContext = wglCreateContext(deviceContext);
 
     PIXELFORMATDESCRIPTOR pfd = CreateDefaultPixelFormatDescriptor();
 
@@ -101,9 +96,14 @@ void CreateGLRenderContext(HDC deviceContext)
 
     bool setFormat = SetPixelFormat(deviceContext, pixelFormatNumber, &pfd);
 
+    HGLRC glRenderContext = wglCreateContext(deviceContext);
 
+    bool madeCurrent = wglMakeCurrent(deviceContext, glRenderContext);
 
-    wglMakeCurrent(deviceContext, glRenderContext);
+    if (!gladLoadGL())
+    {
+        printf("Failed to load GLAD\n");
+    }
 
     // Set VSync
     PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)
@@ -113,16 +113,15 @@ void CreateGLRenderContext(HDC deviceContext)
         wglSwapIntervalEXT(0);
     }
 
-    error = GetLastError();
-    if (!gladLoadGL())
-    {
-        printf("Failed to load GLAD\n");
-    }
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, nullptr);
 
     printf("OpenGL Version: %d.%d\n", GLVersion.major, GLVersion.minor);
 }
 
-void KeyboardCB(int32_t keyCode, GameInput* input)
+void
+KeyboardCB(int32_t keyCode, GameInput* input)
 {
     if (keyCode == VK_ESCAPE)
     {
@@ -134,7 +133,8 @@ void KeyboardCB(int32_t keyCode, GameInput* input)
     }
 }
 
-void checkAssetDirectory()
+void
+CheckAssetDirectory()
 {
     char *assetRootDirectory = GetAssetRootDirectory();
     if (assetRootDirectory)
@@ -146,7 +146,26 @@ void checkAssetDirectory()
     }
 }
 
-void CreateExternalConsole(char *title)
+LRESULT CALLBACK 
+WindowProc(
+    _In_ HWND hwnd,
+    _In_ UINT uMsg,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_CLOSE:
+    case WM_DESTROY:
+        g_running = true;
+        return 0;
+    }
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+void 
+CreateExternalConsole(const char *title)
 {
     FreeConsole();
     bool allocatedConsole = AllocConsole();
@@ -164,44 +183,24 @@ void CreateExternalConsole(char *title)
     }
 }
 
-
-inline LRESULT CALLBACK WindowProc(
-    _In_ HWND hwnd,
-    _In_ UINT uMsg,
-    _In_ WPARAM wParam,
-    _In_ LPARAM lParam)
+int CALLBACK
+WinMain(
+    HINSTANCE hInstance,
+    HINSTANCE hPrevInstance,
+    LPSTR arguments,
+    int showCode)
 {
-    switch (uMsg)
-    {
-    case WM_KEYDOWN:
-
-        break;
-    case WM_PAINT:
-        break;
-    case WM_CLOSE:
-        return 0;
-    case WM_DESTROY:
-        return 0;
-    }
-
-    return ::DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
-int WinMain(HINSTANCE hInstance,
-            HINSTANCE hPrevInstance,
-            LPSTR arguments,
-            int showCode)
-{
+    CreateExternalConsole(g_appname);
     // Create window
     WNDCLASSEXA windowClass{};
     windowClass.hInstance = hInstance;
-    windowClass.lpszClassName = "App";
+    windowClass.lpszClassName = g_appname;
     windowClass.lpfnWndProc = WindowProc;
     windowClass.cbSize = sizeof(windowClass);
     windowClass.style = CS_OWNDC;
     windowClass.hIconSm = LoadIcon(hInstance, IDI_APPLICATION);
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    
+
     if (!RegisterClassExA(&windowClass))
     {
         u16 error = GetLastError();
@@ -211,8 +210,8 @@ int WinMain(HINSTANCE hInstance,
 
     HWND hWindow = CreateWindowExA(
                        WS_EX_CLIENTEDGE,
-                       "App",
-                       "App",
+                       g_appname,
+                       g_appname,
                        WS_OVERLAPPEDWINDOW,
                        CW_USEDEFAULT, CW_USEDEFAULT,
                        720, 480,
@@ -225,15 +224,15 @@ int WinMain(HINSTANCE hInstance,
         return -1;
     }
 
-    HDC hdc = GetDC(hWindow);
-    CreateGLRenderContext(hdc);
+    CheckAssetDirectory();
 
     ShowWindow(hWindow, showCode);
     UpdateWindow(hWindow);
 
+    HDC hdc = GetDC(hWindow);
 
+    CreateGLRenderContext(hdc);
 
-    checkAssetDirectory();
 
     GameInitialize();
 
@@ -241,7 +240,7 @@ int WinMain(HINSTANCE hInstance,
     int screenHeight = 1000;
     float aspectRatio = static_cast<float>(screenWidth) / static_cast<float>(screenHeight);
 
-
+#if 0
     Timer mainLoopTimer = CreateTimer("Main Loop");
     double secondsPerFrame = 1.0 / 60.0;
     double microsPerFrame = secondsPerFrame * 1000000.0;
@@ -250,11 +249,12 @@ int WinMain(HINSTANCE hInstance,
     u64 totalFrameTime = 0;
     u64 numFrames = 0;
     bool running;
-    while (true)
+#endif
+    while (g_running)
     {
-        TimerStart(&mainLoopTimer);
-        
-        numFrames++;
+        //TimerStart(&mainLoopTimer);
+
+        //numFrames++;
 
         MSG msg {};
 
@@ -264,16 +264,10 @@ int WinMain(HINSTANCE hInstance,
             DispatchMessage(&msg);
         }
 
-#if 0
-        if (shouldReloadShaders)
-        {
-            vShader.CompileShader();
-            fShader.CompileShader();
-            prog.Link();
-            shouldReloadShaders = false;
-        }
-#endif
         GameUpdateAndRender(&g_game_input);
+
+        wglSwapLayerBuffers(hdc, WGL_SWAP_MAIN_PLANE);
+#if 0
 
         u64 frameTimeInMicros = TimerGetTicks(&mainLoopTimer, TimeUnit::MicroSeconds);
 
@@ -294,7 +288,8 @@ int WinMain(HINSTANCE hInstance,
 
         double frameTime = (double)totalFrameTime / (double)numFrames;
         printf("\rFrame time: (%.1fus/%lluus) - %.1fFPS", frameTime, minFrameTimeInMicros, frameRate);
+#endif
 
-        wglSwapLayerBuffers(hdc, WGL_SWAP_MAIN_PLANE);
     }
+    return 0;
 }

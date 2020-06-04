@@ -1,7 +1,6 @@
-
 // System
-#include <iostream>
 #include <stdio.h>
+#include <iostream>
 #include <string>
 #include <cinttypes>
 #include <stdexcept>
@@ -15,7 +14,9 @@
 #include <gl/glext.h>
 #include <gl/wglext.h>
 
+// -----------------------------------------//
 // Project
+// -----------------------------------------//
 
 //   Isolated
 #include "yellow_math.h"
@@ -29,5 +30,4 @@
 #include "rendering.h"
 #include "asset_manager.h"
 
-//   
 #include "yellow.h"

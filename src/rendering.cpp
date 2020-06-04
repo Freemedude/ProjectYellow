@@ -1,32 +1,7 @@
-﻿
-Transform CreateTransform()
-{
-	Transform result {};
-
-	result.scale = {1, 1, 1};
-
-	return result;
-}
-
-Mat4 ComputeTransformationMatrix(Transform* transform)
-{
-	Mat4 translateMatrix = Translate(transform->position);
-	Mat4 scaleMatrix = Scale(transform->scale);
-	return translateMatrix * scaleMatrix;
-}
-
-ShaderProgram CreateShaderProgram(Shader *vs, Shader *fs)
-{
-	ShaderProgram result;
-
-	result.id = glCreateProgram();
-	result.vertex_shader = vs;
-	result.fragment_shader = fs;
-
-	return result;
-}
-
-Shader CreateShader(char *path, ShaderType type, bool *success)
+﻿//-------------------------------------------
+// Shader
+//-------------------------------------------
+Shader CreateShader(char *path, ShaderType type, bool *pSuccess)
 {
 	Shader result {};
 	result.id = glCreateShader(type);
@@ -39,27 +14,134 @@ Shader CreateShader(char *path, ShaderType type, bool *success)
 
 	bool foundFile = false;
 	File shaderFile = AssetManagerGetFile(path, &foundFile);
+
+	if (pSuccess != nullptr)
+	{
+		*pSuccess = foundFile;
+	}
+
 	assert(foundFile);
-	
+
 	glShaderSource(result.id, 1, &shaderFile.text, nullptr);
 
+	// TODO: Handle compile failure
 	glCompileShader(result.id);
 
 	return result;
 }
 
-void BindProgram(ShaderProgram* program)
+const char* ShaderTypeToString(GLuint type)
+{
+	switch (type)
+	{
+	case GL_VERTEX_SHADER: return "Vertex Shader";
+	case GL_FRAGMENT_SHADER: return "Fragment Shader";
+	default:
+		return nullptr;
+	}
+}
+
+//-------------------------------------------
+// Shader Program
+//-------------------------------------------
+
+ShaderProgram 
+CreateShaderProgram(Shader *vs, Shader *fs)
+{
+	ShaderProgram result {};
+
+	result.vertex_shader = vs;
+	result.fragment_shader = fs;
+	result.id = glCreateProgram();
+
+	glAttachShader(result.id, vs->id);
+	glAttachShader(result.id, fs->id);
+	glLinkProgram(result.id);
+
+	return result;
+}
+
+
+void
+BindProgram(ShaderProgram* program)
 {
 	glUseProgram(program->id);
 }
 
-void SetUniformMat4(ShaderProgram *program, char* name, Mat4 *matrix)
+void
+SetUniformMat4(ShaderProgram *program, char* name, Mat4 *matrix)
 {
-	glGetUniformLocation(program->id, name);
-	glUniformMatrix4fv(program->id, 1, false, &matrix->m[0][0]);
+	int location = glGetUniformLocation(program->id, name);
+	glUniformMatrix4fv(location, 1, false, &matrix->m[0][0]);
 }
 
-static void AddAttribute(
+//-------------------------------------------
+// Material
+//-------------------------------------------
+
+//-------------------------------------------
+// Transform
+//-------------------------------------------
+
+Transform
+CreateTransform()
+{
+	Transform result {};
+
+	result.scale = {1, 1, 1};
+
+	return result;
+}
+
+Mat4
+ComputeTransformationMatrix(Transform* transform)
+{
+	Mat4 translateMatrix = Translate(transform->position);
+	Mat4 scaleMatrix = Scale(transform->scale);
+	return translateMatrix * scaleMatrix;
+}
+
+//-------------------------------------------
+// Mesh
+//-------------------------------------------
+Mesh
+CreateMesh(Array vertices, Array indices)
+{
+	Mesh result {};
+
+	result.vertices = vertices;
+	result.indices = indices;
+
+	glGenVertexArrays(1, &result.vao);
+	glBindVertexArray(result.vao);
+
+	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &result.vbo , "Vertex Buffer");
+	CreateBuffer(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, &result.ibo, "Index Buffer");
+
+	AddAttribute(0, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, pos));
+	AddAttribute(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, col));
+
+	return result;
+}
+
+void
+CreateBuffer(
+    Array data,
+    GLint type,
+    GLuint hint,
+    GLuint* bufferId,
+    const char * label)
+{
+	glGenBuffers(1, bufferId);
+	glBindBuffer(type, *bufferId);
+	glObjectLabel(GL_BUFFER, *bufferId, -1, label);
+
+	int bufferSize = data.element_size * data.count;
+	glBufferData(type, static_cast<GLsizeiptr>(bufferSize), data.data, hint);
+}
+
+void
+AddAttribute(
     GLuint index,
     GLuint type,
     GLint size,
@@ -77,46 +159,21 @@ static void AddAttribute(
 	glEnableVertexAttribArray(index);
 }
 
-static void CreateBuffer(
-    Array data,
-    GLint type,
-    GLuint hint,
-    GLuint* bufferId,
-    const char * label)
-{
-	glGenBuffers(1, bufferId);
-	glBindBuffer(type, *bufferId);
-	glObjectLabel(GL_BUFFER, *bufferId, -1, label);
 
-	int bufferSize = data.elementSize * data.count;
-	glBufferData( type, static_cast<GLsizeiptr>(bufferSize), data.data, hint);
-}
-
-
-Mesh CreateMesh(Array vertices, Array indices)
-{
-	Mesh mesh;
-
-	glGenVertexArrays(1, &mesh.vao);
-	glBindVertexArray(mesh.vao);
-
-	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &mesh.vbo , "Vertex Buffer");
-	CreateBuffer(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, &mesh.ibo, "Index Buffer");
-
-	AddAttribute(0, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, pos));
-	AddAttribute(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, col));
-
-	return mesh;
-}
-void BindMesh(Mesh *mesh)
+void
+BindMesh(Mesh *mesh)
 {
 	glBindVertexArray(mesh->vao);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ibo);
 }
 
-RenderObject CreateRenderObject(Mesh *mesh, Material* material, Transform transform)
+//-------------------------------------------
+// Render Object
+//-------------------------------------------
+
+RenderObject
+CreateRenderObject(Mesh *mesh, Material* material, Transform transform)
 {
-	RenderObject result;
+	RenderObject result {};
 
 	result.mesh = mesh;
 	result.material = material;
@@ -125,85 +182,64 @@ RenderObject CreateRenderObject(Mesh *mesh, Material* material, Transform transf
 	return result;
 }
 
-void RenderRenderObject(RenderObject* ro)
+void
+RenderRenderObject(RenderObject* ro)
 {
-	BindMesh(ro->mesh);
-	BindProgram(ro->material->program);
+	glUseProgram(ro->material->program->id);
+	glBindVertexArray(ro->mesh->vao);
 
 	Mat4 matrix = ComputeTransformationMatrix(&ro->transform);
 	SetUniformMat4(ro->material->program, "u_matrix", &matrix);
 
 	glDrawElements(
 	    GL_TRIANGLES,
-	    static_cast<GLsizei>(ro->mesh->indices.count),
+	    ro->mesh->indices.count,
 	    GL_UNSIGNED_INT,
 	    nullptr);
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
-Mesh CreateDemoMeshTriangle()
+Mesh
+CreateDemoMeshTriangle()
 {
-	Mesh mesh;
+	// Data
+	Vertex verts[] {
+		{{ -0.5f, -0.5, 0}, {1, 0, 0}},
+		{{0.5, -0.5, 0}, {0, 1, 0}},
+		{{0, 0.5, 0}, {0, 0, 1}},
+	};
 
-	Array vertexArray {};
-	{
-		vertexArray.count = 3;
-		vertexArray.elementSize = sizeof(Vertex);
-		vertexArray.data = new Vertex[3];
+	Index idxs[] = {
+		0, 1, 2
+	};
 
-		Vertex verts[] {
-			{{ -0.5f, -0.5, 0}, {1, 0, 0}},
-			{{0.5, -0.5, 0}, {0, 1, 0}},
-			{{0, 0.5, 0}, {0, 0, 1}},
-		};
-		memcpy(vertexArray.data, verts, sizeof(verts));
-	}
+	// Create destination arrays
+	Array vertexArray {ARRAY_COUNT(verts), sizeof(Vertex), new Vertex[3]};
+	Array indexArray {ARRAY_COUNT(idxs), sizeof(Index), new Index[3]};
 
-	Array indexArray;
-	{
-		indexArray.data = new Index[3];
-		indexArray.count = 3;
-		indexArray.elementSize = sizeof(Index);
-		
-		Index idxs[] {
-			0, 1, 2
-		};
-		memcpy(indexArray.data, idxs, sizeof(idxs));
-	}
+	// Copy vertex data
+	memcpy(vertexArray.data, verts, sizeof(verts));
+	memcpy(indexArray.data, idxs, sizeof(idxs));
 
 	return CreateMesh(vertexArray, indexArray);
 }
+
 void GLAPIENTRY
-MessageCallback(GLenum source,
-                GLenum type,
-                GLuint id,
-                GLenum severity,
-                GLsizei length,
-                const GLchar *message,
-                const void *userParam)
+MessageCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar *message,
+    const void *userParam)
 {
 	char buffer[512];
 	sprintf(buffer, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
 	        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
 	        type, severity, message);
+	printf("%s\n", buffer);
 
-	std::cout << buffer << std::endl;
-}
-
-void Initialize()
-{
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(MessageCallback, nullptr);
-}
-
-
-const char* ShaderTypeToString(GLuint type)
-{
-	switch (type)
-	{
-	case GL_VERTEX_SHADER: return "Vertex Shader";
-	case GL_FRAGMENT_SHADER: return "Fragment Shader";
-	default:
-		throw std::invalid_argument("Unsupported shader type");
-	}
 }
 

@@ -1,11 +1,34 @@
-﻿typedef uint32_t Index;
+﻿//-------------------------------------------
+// File: rendering.h
+// About: Functions and structs related to rendering
+// Created by: Freemedude
+//-------------------------------------------
 
+// -----------------------------------------//
+// Global
+// -----------------------------------------//
+
+// TODO: Move this elsewhere
 struct Array
 {
+	u64 count;
+	u64 element_size;
 	void* data;
-	uint64_t count;
-	uint64_t elementSize;
 };
+
+typedef uint Index;
+
+void 
+AddAttribute(
+    GLuint index,
+    GLuint type,
+    GLint size,
+    GLsizei stride,
+    uint64_t offset);
+
+//------------------------------/
+// Shader
+//------------------------------/
 
 enum ShaderType
 {
@@ -20,17 +43,18 @@ struct Shader
 	uint id;
 };
 
+Shader
+CreateShader(
+    char *path,
+    uint shaderType,
+    bool* success);
 
-/**
- * \param path Path to the shader file
- * \param shaderType Type of shader
- * \param success Success status of shader creation, can be null.
- */
-Shader CreateShader(char *path, uint shaderType, bool* success);
+const char*
+ShaderTypeToString(GLuint type);
 
-void CompileShader(Shader *shader);
-
-const char* ShaderTypeToString(GLuint type);
+//------------------------------/
+// Shader program
+//------------------------------/
 
 struct ShaderProgram
 {
@@ -39,39 +63,86 @@ struct ShaderProgram
 	Shader *fragment_shader;
 };
 
-ShaderProgram CreateShaderProgram(Shader *vs, Shader *fs);
+ShaderProgram
+CreateShaderProgram(Shader *vs, Shader *fs);
+
+void
+BindProgram(ShaderProgram* program);
+
+void
+BindProgram(ShaderProgram* program);
+
+// ---- Uniforms ----
+
+void
+SetUniformMat4(ShaderProgram *program, char* name, Mat4 *matrix);
+
+//------------------------------/
+// Material
+//------------------------------/
 
 struct Material
 {
 	ShaderProgram* program;
 };
 
+//------------------------------/
+// Transform
+//------------------------------/
+
 struct Transform
 {
 	V3 position;
 	V3 scale;
-
 };
 
-Transform CreateTransform();
+Transform
+CreateTransform();
 
-Mat4 ComputeTransformationMatrix(Transform *transform);
+Mat4
+ComputeTransformationMatrix(Transform *transform);
 
-void Initialize();
+//-------------------------------------------
+// Mesh
+//-------------------------------------------
 
 struct Mesh
 {
 	Array vertices;
 	Array indices;
-	GLuint vao;
-	GLuint vbo;
-	GLuint ibo;
+	uint vao;
+	uint vbo;
+	uint ibo;
 };
 
-Mesh CreateMesh(Array vertices, Array indices);
-void BindMesh(Mesh *mesh);
+Mesh
+CreateMesh(Array vertices, Array indices);
 
-Mesh CreateDemoMeshTriangle();
+void
+BindMesh(Mesh *mesh);
+
+void
+CreateBuffer(
+    Array data,
+    GLint type,
+    GLuint hint,
+    GLuint* bufferId,
+    const char * label);
+
+void 
+AddAttribute(
+    GLuint index,
+    GLuint type,
+    GLint size,
+    GLsizei stride,
+    uint64_t offset);
+
+Mesh
+CreateDemoMeshTriangle();
+
+//-------------------------------------------
+// Render Object
+//-------------------------------------------
 
 struct RenderObject
 {
@@ -80,8 +151,18 @@ struct RenderObject
 	Mesh* mesh;
 };
 
-RenderObject CreateRenderObject(Mesh *mesh, Material* material, Transform transform);
-void RenderRenderObject(RenderObject* ro);
+RenderObject
+CreateRenderObject(
+    Mesh *mesh,
+    Material* material,
+    Transform transform);
+
+void
+RenderRenderObject(RenderObject* ro);
+
+//-------------------------------------------
+// Scene
+//-------------------------------------------
 
 struct Scene
 {

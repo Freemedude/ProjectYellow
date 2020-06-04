@@ -55,10 +55,10 @@ char *GetAssetRootDirectory()
     while (!directoryContainsFile(pCurrentDirectory, ASSET_ROOT_FILENAME))
     {
         // Jump up one directory by chopping off last couple chars
-        char *lastSlash = strchr(pCurrentDirectory, '/');
+        char *lastSlash = strrchr(pCurrentDirectory, '/');
 
         lastSlash[0] = 0;
-        lastSlash = strchr(pCurrentDirectory, '/');
+        lastSlash = strrchr(pCurrentDirectory, '/');
 
         if (lastSlash == nullptr)
         {
@@ -104,8 +104,11 @@ File AssetManagerGetFile(char *path, bool *success)
         result = ReadFile(pAbsoluteFilePath, &foundFile);
         *success = foundFile;
     }
+    else
+    {
+        *success = false;
+    }
 
-    *success = false;
     return result;
 }
 
