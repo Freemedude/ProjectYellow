@@ -1,6 +1,4 @@
-﻿namespace Yellow
-{
-struct V2
+﻿struct V2
 {
 	float m[2];
 	inline float &operator[](int index);
@@ -213,7 +211,7 @@ inline V3 Cross(V3& a, V3& b)
 struct V4
 {
 	float m[4];
-	
+
 	inline float &operator[](int index);
 };
 
@@ -339,10 +337,10 @@ float *Mat4::operator[](int index)
 inline float Mat4DotRowCol(Mat4& a, Mat4& b, int col, int row)
 {
 	return
-		a[0][col] * b[row][0] +
-		a[1][col] * b[row][1] +
-		a[2][col] * b[row][2] +
-		a[3][col] * b[row][3];
+	    a[0][col] * b[row][0] +
+	    a[1][col] * b[row][1] +
+	    a[2][col] * b[row][2] +
+	    a[3][col] * b[row][3];
 }
 
 inline Mat4 Identity()
@@ -412,14 +410,11 @@ inline Mat4 Translate(V3 trans)
 // Projections
 inline Mat4 Orthogonal()
 {
-	
+
 }
-
-
 
 struct Vertex
 {
 	V3 pos;
 	V3 col;
 };
-}

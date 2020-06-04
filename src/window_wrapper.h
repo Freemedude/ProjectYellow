@@ -1,4 +1,4 @@
-#define UNICODE
+#undef UNICODE
 #define NOMINMAX
 #include <Windows.h>
 #undef near

@@ -1,6 +1,3 @@
-﻿namespace Yellow
-{
-
 Program::Program(Shader *vertexShader, Shader *fragmentShader)
 {
     _vertexShader = vertexShader;
@@ -59,4 +56,3 @@ GLint Program::GetLocation(const std::string& name)
 	return location;
 }
 
-}

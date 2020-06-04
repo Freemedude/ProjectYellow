@@ -1,139 +1,245 @@
-﻿namespace Yellow
+﻿//-------------------------------------------
+// Shader
+//-------------------------------------------
+Shader CreateShader(char *path, ShaderType type, bool *pSuccess)
 {
-Mat4 Transform::ComputeMatrix() const
+	Shader result {};
+	result.id = glCreateShader(type);
+
+	result.type = type;
+
+	// Copy and terminate
+	strncpy(result.path, path, MAX_FILE_PATH_LENGTH - 1);
+	result.path[MAX_FILE_PATH_LENGTH] = 0;
+
+	bool foundFile = false;
+	File shaderFile = AssetManagerGetFile(path, &foundFile);
+
+	if (pSuccess != nullptr)
+	{
+		*pSuccess = foundFile;
+	}
+
+	assert(foundFile);
+
+	glShaderSource(result.id, 1, &shaderFile.text, nullptr);
+
+	// TODO: Handle compile failure
+	glCompileShader(result.id);
+
+	return result;
+}
+
+const char* ShaderTypeToString(GLuint type)
 {
-	Mat4 translateMatrix = Translate(position);
-	Mat4 scaleMatrix = Scale(scale);
+	switch (type)
+	{
+	case GL_VERTEX_SHADER: return "Vertex Shader";
+	case GL_FRAGMENT_SHADER: return "Fragment Shader";
+	default:
+		return nullptr;
+	}
+}
+
+//-------------------------------------------
+// Shader Program
+//-------------------------------------------
+
+ShaderProgram 
+CreateShaderProgram(Shader *vs, Shader *fs)
+{
+	ShaderProgram result {};
+
+	result.vertex_shader = vs;
+	result.fragment_shader = fs;
+	result.id = glCreateProgram();
+
+	glAttachShader(result.id, vs->id);
+	glAttachShader(result.id, fs->id);
+	glLinkProgram(result.id);
+
+	return result;
+}
+
+
+void
+BindProgram(ShaderProgram* program)
+{
+	glUseProgram(program->id);
+}
+
+void
+SetUniformMat4(ShaderProgram *program, char* name, Mat4 *matrix)
+{
+	int location = glGetUniformLocation(program->id, name);
+	glUniformMatrix4fv(location, 1, false, &matrix->m[0][0]);
+}
+
+//-------------------------------------------
+// Material
+//-------------------------------------------
+
+//-------------------------------------------
+// Transform
+//-------------------------------------------
+
+Transform
+CreateTransform()
+{
+	Transform result {};
+
+	result.scale = {1, 1, 1};
+
+	return result;
+}
+
+Mat4
+ComputeTransformationMatrix(Transform* transform)
+{
+	Mat4 translateMatrix = Translate(transform->position);
+	Mat4 scaleMatrix = Scale(transform->scale);
 	return translateMatrix * scaleMatrix;
 }
 
-
-
-Mesh::Mesh(Array vertices, Array indices)
-	: vertices(vertices), indices(indices)
+//-------------------------------------------
+// Mesh
+//-------------------------------------------
+Mesh
+CreateMesh(Array vertices, Array indices)
 {
-	GLCall(glGenVertexArrays(1, &vao));
+	Mesh result {};
 
-	Bind();
+	result.vertices = vertices;
+	result.indices = indices;
 
-	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &vbo ,"Vertex Buffer");
-	CreateBuffer(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW,
-	             &ibo, "Index Buffer");
+	glGenVertexArrays(1, &result.vao);
+	glBindVertexArray(result.vao);
+
+	CreateBuffer(vertices, GL_ARRAY_BUFFER, GL_STATIC_DRAW, &result.vbo , "Vertex Buffer");
+	CreateBuffer(indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, &result.ibo, "Index Buffer");
 
 	AddAttribute(0, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, pos));
 	AddAttribute(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, col));
+
+	return result;
 }
 
-void Mesh::AddAttribute(
-	GLuint index,
-	GLuint type,
-	GLint size,
-	GLsizei stride,
-	uint64_t offset)
+void
+CreateBuffer(
+    Array data,
+    GLint type,
+    GLuint hint,
+    GLuint* bufferId,
+    const char * label)
 {
-	GLCall(glVertexAttribPointer(
-		index,
-		size,
-		type,
-		GL_FALSE,
-		stride,
-		reinterpret_cast<void*>(offset)));
+	glGenBuffers(1, bufferId);
+	glBindBuffer(type, *bufferId);
+	glObjectLabel(GL_BUFFER, *bufferId, -1, label);
 
-	GLCall(glEnableVertexAttribArray(index));
+	int bufferSize = data.element_size * data.count;
+	glBufferData(type, static_cast<GLsizeiptr>(bufferSize), data.data, hint);
 }
 
-void Mesh::CreateBuffer(Array data, GLint type, GLuint hint,
-                        OUT GLuint* bufferId,
-                        const char * label)
+void
+AddAttribute(
+    GLuint index,
+    GLuint type,
+    GLint size,
+    GLsizei stride,
+    uint64_t offset)
 {
-	GLCall(glGenBuffers(1, bufferId));
-	GLCall(glBindBuffer(type, *bufferId));
-    GLCall(glObjectLabel(GL_BUFFER, *bufferId, -1, label));
-	GLCall(glBufferData(
-		type,
-		static_cast<GLsizeiptr>(data.elementSize * data.count * data.elementSize
-		),
-		data.data,
-		hint));
-}
+	glVertexAttribPointer(
+	    index,
+	    size,
+	    type,
+	    GL_FALSE,
+	    stride,
+	    reinterpret_cast<void*>(offset));
 
-void Mesh::Bind() const
-{
-	GLCall(glBindVertexArray(vao));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-}
-
-RenderObject::RenderObject()
-{
-}
-
-void RenderObject::Create(Mesh *mesh, Material *material, Transform *transform)
-{
-    this->mesh = mesh;
-    this->material = material;
-    this->transform = transform;
-}
-
-    RenderObject::~RenderObject()
-{
+	glEnableVertexAttribArray(index);
 }
 
 
-void RenderObject::Render() const
+void
+BindMesh(Mesh *mesh)
 {
-	mesh->Bind();
-	material->program->Bind();
-	material->program->SetMatrix("u_matrix", transform->ComputeMatrix());
+	glBindVertexArray(mesh->vao);
+}
+
+//-------------------------------------------
+// Render Object
+//-------------------------------------------
+
+RenderObject
+CreateRenderObject(Mesh *mesh, Material* material, Transform transform)
+{
+	RenderObject result {};
+
+	result.mesh = mesh;
+	result.material = material;
+	result.transform = transform;
+
+	return result;
+}
+
+void
+RenderRenderObject(RenderObject* ro)
+{
+	glUseProgram(ro->material->program->id);
+	glBindVertexArray(ro->mesh->vao);
+
+	Mat4 matrix = ComputeTransformationMatrix(&ro->transform);
+	SetUniformMat4(ro->material->program, "u_matrix", &matrix);
 
 	glDrawElements(
-		GL_TRIANGLES,
-		static_cast<GLsizei>(mesh->indices.count),
-		GL_UNSIGNED_INT,
-		nullptr);
+	    GL_TRIANGLES,
+	    ro->mesh->indices.count,
+	    GL_UNSIGNED_INT,
+	    nullptr);
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
-Mesh* Mesh::Triangle()
+Mesh
+CreateDemoMeshTriangle()
 {
-	Vertex* vertices = new Vertex[3];
-	{
-		Vertex verts[]{
-			{{-0.5f, -0.5, 0}, {1, 0, 0}},
-			{{0.5, -0.5, 0}, {0, 1, 0}},
-			{{0, 0.5, 0}, {0, 0, 1}},
-		};
-		memcpy(vertices, verts, sizeof(verts));
-	}
+	// Data
+	Vertex verts[] {
+		{{ -0.5f, -0.5, 0}, {1, 0, 0}},
+		{{0.5, -0.5, 0}, {0, 1, 0}},
+		{{0, 0.5, 0}, {0, 0, 1}},
+	};
 
-	Index* indices = new Index[3];
-	{
-		Index idxs[]{
-			0, 1, 2
-		};
-		memcpy(indices, idxs, sizeof(idxs));
-	}
+	Index idxs[] = {
+		0, 1, 2
+	};
 
-	return new Mesh{{vertices, 3, sizeof(Vertex)}, {indices, 3, sizeof(Index)}};
+	// Create destination arrays
+	Array vertexArray {ARRAY_COUNT(verts), sizeof(Vertex), new Vertex[3]};
+	Array indexArray {ARRAY_COUNT(idxs), sizeof(Index), new Index[3]};
+
+	// Copy vertex data
+	memcpy(vertexArray.data, verts, sizeof(verts));
+	memcpy(indexArray.data, idxs, sizeof(idxs));
+
+	return CreateMesh(vertexArray, indexArray);
 }
+
 void GLAPIENTRY
-MessageCallback(GLenum source,
-                GLenum type,
-                GLuint id,
-                GLenum severity,
-                GLsizei length,
-                const GLchar *message,
-                const void *userParam)
+MessageCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar *message,
+    const void *userParam)
 {
-    char buffer[512];
-    sprintf(buffer, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-            type, severity, message);
-    
-    std::cout << buffer << std::endl;
+	char buffer[512];
+	sprintf(buffer, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+	        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+	        type, severity, message);
+	printf("%s\n", buffer);
+
 }
 
-void Initialize()
-{
-    glEnable(GL_DEBUG_OUTPUT);
-    GLCall(glDebugMessageCallback(MessageCallback, nullptr));
-}
-}

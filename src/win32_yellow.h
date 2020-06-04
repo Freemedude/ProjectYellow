@@ -1,7 +1,6 @@
-
 // System
-#include <iostream>
 #include <stdio.h>
+#include <iostream>
 #include <string>
 #include <cinttypes>
 #include <stdexcept>
@@ -15,16 +14,20 @@
 #include <gl/glext.h>
 #include <gl/wglext.h>
 
+// -----------------------------------------//
 // Project
+// -----------------------------------------//
+
+//   Isolated
 #include "yellow_math.h"
 #include "integers.h"
-#include "opengl_wrapper.h"
-#include "shader.h"
-#include "program.h"
-#include "rendering.h"
-#include "scene.h"
-#include "file.h"
-#include "asset_manager.h"
-#include "importing.h"
 #include "timers.h"
-#include "win32_platform.h"
+
+//   Misc
+#include "platform.h"
+
+//   Rendering
+#include "rendering.h"
+#include "asset_manager.h"
+
+#include "yellow.h"

@@ -1,5 +1,3 @@
-namespace Yellow
-{
 using Time = std::chrono::steady_clock;
 
 using Seconds = std::chrono::seconds;
@@ -34,29 +32,21 @@ public:
     TimePoint start;
 };
 
-class Timer
+struct Timer
 {
-public:
-    const std::string &label;
+    const char *label;
     TimePoint start;
     TimePoint end;
-
     bool running;
 
-    Timer(const std::string &label, bool startRunning = true);
-
-    ~Timer();
-
-    void Report();
-
-    Duration GetDuration() const;
-
-    u64 GetTicksInUnit(TimeUnit unit) const;
-
-    void Stop();
-
-    void Start();
-
-    void Resume();
 };
-} // namespace Yellow
+
+Timer CreateTimer(const char* label);
+
+void TimerPrint(Timer *timer);
+Duration TimerGetDuration(Timer *timer);
+
+u64 TimerGetTicks(Timer* timer, TimeUnit unit);
+void TimerStart(Timer *timer);
+void TimerEnd(Timer *timer);
+void TimerResult(Timer *timer);
