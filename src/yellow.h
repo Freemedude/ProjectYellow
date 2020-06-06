@@ -1,7 +1,24 @@
 
-#define NULLABLE
-#define OUT
 
-#define IS_DIVISBLE_BY(a, b) (!(a % b))
-#define ARRAY_COUNT(x) ((sizeof(x)/sizeof(0[x])) /\
-					 ((size_t)IS_DIVISBLE_BY(sizeof(x), sizeof(0[x]))))
+struct GameMemory
+{
+	Scene scene;
+	Mesh triangle_mesh;
+	Shader vertex_shader;
+	Shader fragment_shader;
+	ShaderProgram program;
+	Material material;
+};
+
+
+// Platform -> Game
+struct GameInput
+{
+	bool quit;
+	bool reload_shaders;
+};
+void 
+GameInitialize();
+
+void 
+GameUpdateAndRender(GameMemory *memory, GameInput *gameInput);

@@ -18,16 +18,13 @@
 // Project
 // -----------------------------------------//
 
-//   Isolated
-#include "yellow_math.h"
 #include "integers.h"
+#include "utilities.h"
+#include "yellow_math.h"
+#include "platform.h"
 #include "timers.h"
 
-//   Misc
-#include "platform.h"
-
-//   Rendering
 #include "rendering.h"
 #include "asset_manager.h"
-
 #include "yellow.h"
+

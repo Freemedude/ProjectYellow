@@ -4,32 +4,32 @@
 // Globals
 //-------------------------------------------
 
-// TODO (danh): Move all of these into heap.
-Scene scene;
-Mesh triangleMesh;
-
-Shader vShader;
-Shader fShader;
-ShaderProgram program;
-
-Material material;
-
+// TODO (danh): Move all of these into game memory
 void 
-GameInitialize()
+GameInitialize(void *memory)
 {
-	triangleMesh = CreateDemoMeshTriangle();
+	GameMemory *gameMemory = (GameMemory*)memory;
+	gameMemory->triangle_mesh = CreateDemoMeshTriangle();
 	bool success = false;
-	vShader = CreateShader("shaders/OnlyPosition.vert", ShaderType_VertexShader, &success);
-	fShader = CreateShader("shaders/ColorPosition.frag", ShaderType_FragmentShader, &success);
-	program = CreateShaderProgram(&vShader, &fShader);
+	gameMemory->vertex_shader = CreateShader(
+		"shaders/OnlyPosition.vert", 
+		ShaderType_VertexShader, 
+		&success);
+	gameMemory->fragment_shader = CreateShader(
+		"shaders/ColorPosition.frag", 
+		ShaderType_FragmentShader, 
+		&success);
+	gameMemory->program = CreateShaderProgram(
+		&gameMemory->vertex_shader, 
+		&gameMemory->fragment_shader);
 
-	material.program = &program;
+	gameMemory->material.program = &gameMemory->program;
 
-	scene.objects = new RenderObject[2];
+	gameMemory->scene.objects = new RenderObject[2];
 
-	scene.objects[0] = CreateRenderObject(&triangleMesh, &material, {{0.5 , 0, 0}, {0.5, 1, 1}});
-	scene.objects[1] = CreateRenderObject(&triangleMesh, &material, {{-0.5, 0.25, 0}, {1, 1, 1}});
-	scene.object_count = 2;
+	gameMemory->scene.objects[0] = CreateRenderObject(&gameMemory->triangle_mesh, &gameMemory->material, {{0.5 , 0, 0}, {0.5, 1, 1}});
+	gameMemory->scene.objects[1] = CreateRenderObject(&gameMemory->triangle_mesh, &gameMemory->material, {{-0.5, 0.25, 0}, {1, 1, 1}});
+	gameMemory->scene.object_count = 2;
 }
 
 void
@@ -59,8 +59,9 @@ RenderScene(Scene *scene)
 }
 
 void 
-GameUpdateAndRender(GameInput* input)
+GameUpdateAndRender(void *memory, GameInput* input)
 {
-	MoveObjectBackAndForth(&scene.objects[1]);
-	RenderScene(&scene);
+	GameMemory *gameMemory = (GameMemory*)memory;
+	MoveObjectBackAndForth(&gameMemory->scene.objects[1]);
+	RenderScene(&gameMemory->scene);
 }

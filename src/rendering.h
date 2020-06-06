@@ -8,14 +8,6 @@
 // Global
 // -----------------------------------------//
 
-// TODO: Move this elsewhere
-struct Array
-{
-	u64 count;
-	u64 element_size;
-	void* data;
-};
-
 typedef uint Index;
 
 void 

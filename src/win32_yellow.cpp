@@ -7,6 +7,7 @@
 #include "rendering.cpp"
 #include "timers.cpp"
 #include "yellow.cpp"
+#include "platform.cpp"
 
 #define Assert(expr) if(!expr) {printf("Assertion failed (" ## __FILE__ ## ", " ## __LINE__ ## ")\n" ## #expr  );} else{}
 
@@ -190,6 +191,8 @@ WinMain(
     LPSTR arguments,
     int showCode)
 {
+
+    void *gameMemory = malloc(sizeof(GameMemory)); 
     CreateExternalConsole(g_appname);
     // Create window
     WNDCLASSEXA windowClass{};
@@ -233,8 +236,7 @@ WinMain(
 
     CreateGLRenderContext(hdc);
 
-
-    GameInitialize();
+    GameInitialize(gameMemory);
 
     int screenWidth = 1500;
     int screenHeight = 1000;
@@ -264,7 +266,7 @@ WinMain(
             DispatchMessage(&msg);
         }
 
-        GameUpdateAndRender(&g_game_input);
+        GameUpdateAndRender(gameMemory, &g_game_input);
 
         wglSwapLayerBuffers(hdc, WGL_SWAP_MAIN_PLANE);
 #if 0
