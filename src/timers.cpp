@@ -1,3 +1,16 @@
+/**
+ * @file: timers.cpp
+ * @author: Daniel Gaard Hansen
+ * @date: 2020/06/14
+ * 
+ * @brief Contains functions for timing
+ * 
+ */
+
+#include "timers.h"
+
+#include <iostream>
+
 void print_timer_duration(const std::string &label, Duration duration)
 {
     Millis time = std::chrono::duration_cast<Millis>(duration);

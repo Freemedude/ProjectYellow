@@ -1,3 +1,18 @@
+/**
+ * @file: timers.h
+ * @author: Daniel Gaard Hansen
+ * @date: 2020/06/14
+ * 
+ * @brief Contains functions for timing
+ */
+#ifndef TIMERS_H_202006141049
+#define TIMERS_H_202006141049
+
+#include <chrono>
+#include <string>
+
+#include "integers.h"
+
 using Time = std::chrono::steady_clock;
 
 using Seconds = std::chrono::seconds;
@@ -50,3 +65,5 @@ u64 TimerGetTicks(Timer* timer, TimeUnit unit);
 void TimerStart(Timer *timer);
 void TimerEnd(Timer *timer);
 void TimerResult(Timer *timer);
+
+#endif // TIMERS_H_202006141049
