@@ -21,7 +21,7 @@ void Scene::TestScene()
     auto pipeline = std::make_shared<RasterPipeline>();
     pipeline->Init("shaders/Default.vert", "shaders/Default.frag");
     m_pipelines.push_back(pipeline);
-    int numMats = 5;
+    int numMats = 10;
     std::uniform_int_distribution<> matDist(0, numMats - 1);
     for (int i = 0; i < numMats; i++)
     {
@@ -46,11 +46,11 @@ void Scene::TestScene()
     std::shared_ptr<Mesh> pCube = Mesh::make_cube();
     m_meshes.push_back(pCube);
 
-    std::uniform_real_distribution<> positionDist(-10, 10);
-    std::uniform_real_distribution<> positionYDist(0, 10);
-    std::uniform_real_distribution<> rotationDist(-10, 10);
-    std::uniform_real_distribution<> scaleDist(0.1, 2.0);
-    int numCubes = 10;
+    std::uniform_real_distribution<> positionDist(-50, 50);
+    std::uniform_real_distribution<> positionYDist(0, 20);
+    std::uniform_real_distribution<> rotationDist(-20, 20);
+    std::uniform_real_distribution<> scaleDist(0.1, 1.5);
+    int numCubes = 100;
     for (int i = 0; i < numCubes; i++)
     {
         auto model = std::make_shared<Model>();

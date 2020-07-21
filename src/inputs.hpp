@@ -12,7 +12,6 @@
 struct Inputs
 {
     bool quit;
-    bool reloadShaders;
     bool cursorLocked;
     bool invalidLastCursor;
 

@@ -21,9 +21,6 @@ Application::Application()
     m_inputs.invalidLastCursor = true;
 
     m_scene.TestScene();
-    m_defaultPipeline.Init(
-        "shaders/Default.vert",
-        "shaders/Default.frag");
 
     glm::ivec2 frameBufferSize = m_window.FrameBufferSize();
     float aspectRatio = (float) frameBufferSize.x / (float) frameBufferSize.y;
@@ -46,11 +43,6 @@ bool Application::Done()
 void Application::BeginFrame()
 {
     m_window.GetInputs();
-
-    if (m_inputs.reloadShaders)
-    {
-        m_defaultPipeline.Reload();
-    }
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -86,7 +78,6 @@ void Application::Update()
 
         pipeline->SetMatrix4("u_matrix", matrix);
         pipeline->SetVector4("u_color", mat->Color());
-        // Use as angle
         pipeline->SetVector3("u_lightDirection", lightDir);
 
 
@@ -157,15 +148,9 @@ void Application::InitializeImGui()
 
 void Application::HandleInputs()
 {
-    // System
     if (m_inputs.quit)
     {
         m_window.Close();
-    }
-
-    if (m_inputs.reloadShaders)
-    {
-        m_defaultPipeline.Reload();
     }
 
     m_window.CursorLocked(m_inputs.cursorLocked);
@@ -174,7 +159,6 @@ void Application::HandleInputs()
     {
         HandleCameraInputs();
     }
-
 }
 
 void Application::HandleCameraInputs()
@@ -220,9 +204,6 @@ void Application::HandleCameraInputs()
 
         // Avoid gimbal lock
         newRot.x = glm::clamp(newRot.x, -89.0f, 89.0f);
-        // Restrain angles to +- 360 degrees. Just nicer in the editor.
-        //  Easiest optimization ever right here
-        newRot = glm::mod(newRot, 360.0f * glm::sign(newRot + 0.0001f));
 
         m_camera.Transform().rotation.xy = newRot;
 

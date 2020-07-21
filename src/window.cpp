@@ -139,12 +139,6 @@ void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, i
                 inputs.cursorLocked = !inputs.cursorLocked;
             }
             break;
-        case GLFW_KEY_F5:
-            if (action == GLFW_RELEASE)
-            {
-                inputs.reloadShaders = true;
-            }
-            break;
         case GLFW_KEY_W:
             ChangeIfNotRepeat(inputs.forward, action);
             break;

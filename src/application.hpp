@@ -8,6 +8,7 @@
 #define PROJECT_YELLOW_APPLICATION_HPP
 
 #define GLM_FORCE_SWIZZLE
+
 #include <glm/glm.hpp>
 
 #include "mesh.hpp"
@@ -28,18 +29,16 @@ struct DebugGuiSettings
 class Application
 {
 private:
-    Window m_window {};
+    Window m_window{};
 
-    RasterPipeline m_defaultPipeline {};
-
-    Assets m_assets {};
-    Inputs m_inputs {};
-    Scene m_scene {};
+    Assets m_assets{};
+    Inputs m_inputs{};
+    Scene m_scene{};
 
     float m_movespeed = 0.05f;
     float m_mouseSensitivity = 0.05f;
 
-    glm::vec3 m_lightDirection {1, -1, 1};
+    glm::vec3 m_lightDirection{1, -1, 1};
 
     Camera m_camera;
 
