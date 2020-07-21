@@ -15,6 +15,10 @@ Application::Application()
 {
     m_window.Init("Project Yellow", 1280, 720, &m_inputs);
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDepthRange(-1, 1);
+
     InitializeImGui();
     m_assets.Init("assets");
 
@@ -40,58 +44,26 @@ bool Application::Done()
     return m_window.ShouldClose();
 }
 
-void Application::BeginFrame()
-{
-    m_window.GetInputs();
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
 
 void Application::Update()
 {
-    BeginFrame();
-
     HandleInputs();
 
-    glm::mat4 lightMatrix = glm::lookAt({0, 0, 0}, m_lightDirection, {0, 1, 0});
-    glm::vec3 lightDir = lightMatrix * glm::vec4{0, 0, -1, 0};
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto model : m_scene.Models())
-    {
-        glm::mat4 modelMatrix = model->GetTransform().Matrix();
-
-        glm::mat4 matrix =
-            m_camera.ViewProjectionMatrix() *
-            modelMatrix;
-
-        auto mat = model->GetMaterial();
-        auto pipeline = mat->Pipeline();
-
-        pipeline->Use();
-
-        pipeline->SetMatrix4("u_matrix", matrix);
-        pipeline->SetVector4("u_color", mat->Color());
-        pipeline->SetVector3("u_lightDirection", lightDir);
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
 
-        auto mesh = model->GetMesh();
-        mesh->Bind();
+    RenderScene();
 
-        glDrawElements(GL_TRIANGLES, mesh->Count(), GL_UNSIGNED_INT, nullptr);
-    }
-
-    RenderGUI();
-    EndFrame();
+    RenderGui();
+    m_window.SwapBuffers();
 }
 
-void Application::RenderGUI()
+void Application::RenderGui()
 {
     ImVec4 headerColor = {1, 0, 0, 1};
 
@@ -126,11 +98,6 @@ void Application::RenderGUI()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void Application::EndFrame()
-{
-    m_window.SwapBuffers();
-}
-
 void Application::InitializeImGui()
 {
     IMGUI_CHECKVERSION();
@@ -148,6 +115,8 @@ void Application::InitializeImGui()
 
 void Application::HandleInputs()
 {
+    m_window.GetInputs();
+
     if (m_inputs.quit)
     {
         m_window.Close();
@@ -155,6 +124,7 @@ void Application::HandleInputs()
 
     m_window.CursorLocked(m_inputs.cursorLocked);
     m_inputs.invalidLastCursor = !m_inputs.cursorLocked;
+
     if (m_inputs.cursorLocked)
     {
         HandleCameraInputs();
@@ -210,5 +180,36 @@ void Application::HandleCameraInputs()
         m_inputs.lastMousePos = m_inputs.mousePos;
         m_inputs.invalidLastCursor = false;
     }
+}
+
+void Application::RenderScene()
+{
+    glm::mat4 lightMatrix = glm::lookAt({0, 0, 0}, m_lightDirection, {0, 1, 0});
+    glm::vec3 lightDir = lightMatrix * glm::vec4{0, 0, -1, 0};
+
+    for (auto model : m_scene.Models())
+    {
+        glm::mat4 modelMatrix = model->GetTransform().Matrix();
+
+        glm::mat4 matrix =
+            m_camera.ViewProjectionMatrix() *
+            modelMatrix;
+
+        auto mat = model->GetMaterial();
+        auto pipeline = mat->Pipeline();
+
+        pipeline->Use();
+
+        pipeline->SetMatrix4("u_matrix", matrix);
+        pipeline->SetVector4("u_color", mat->Color());
+        pipeline->SetVector3("u_lightDirection", lightDir);
+
+
+        auto mesh = model->GetMesh();
+        mesh->Bind();
+
+        glDrawElements(GL_TRIANGLES, mesh->Count(), GL_UNSIGNED_INT, nullptr);
+    }
+
 }
 

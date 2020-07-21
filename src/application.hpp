@@ -47,24 +47,23 @@ public:
 
     ~Application();
 
-    void BeginFrame();
-
     void Update();
 
-    void RenderGUI();
-
-    void EndFrame();
+    void RenderGui();
 
     bool Done();
 
 
 private:
 
+
     void InitializeImGui();
 
     void HandleInputs();
 
     void HandleCameraInputs();
+
+    void RenderScene();
 };
 
 
