@@ -38,9 +38,19 @@ private:
     float m_movespeed = 0.05f;
     float m_mouseSensitivity = 0.05f;
 
-    glm::vec3 m_lightDirection{1, -1, 1};
+    float m_lightPitchSpeed = 0;
+    float m_lightYawSpeed = 0;
 
-    Camera m_camera;
+    float m_lightPitch = 0;
+    float m_lightYaw = 0;
+
+    glm::vec3 m_ambientColor{0.1, 0.1, 0.2};
+    float m_ambientIntensity = 0;
+
+    double m_deltaTime {};
+    double m_frameEnd {};
+
+    Camera m_camera {};
 
 public:
     Application();
@@ -52,7 +62,6 @@ public:
     void RenderGui();
 
     bool Done();
-
 
 private:
 

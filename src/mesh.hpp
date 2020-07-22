@@ -42,10 +42,10 @@ public:
     static std::shared_ptr<Mesh> make_quad()
     {
         std::vector<Vertex> verts = {
-            {{-0.5, -0.5, 0}, {1, 0, 0}},
-            {{0.5,  -0.5, 0}, {0, 1, 0}},
+            {{-0.5, -0.5, 0}, {0, 0, 1}},
+            {{0.5,  -0.5, 0}, {0, 0, 1}},
             {{0.5,  0.5,  0}, {0, 0, 1}},
-            {{-0.5, 0.5,  0}, {0, 1, 0}},
+            {{-0.5, 0.5,  0}, {0, 0, 1}},
         };
 
         std::vector<Index> indices = {
@@ -85,12 +85,12 @@ public:
 
         // Normals are used as color for now
         glm::vec3 normals[]{
-            {0,  0,  1},
+            {0, 0,  1},
             {1,  0,  0},
             {0,  0,  -1},
             {-1, 0,  0},
-            {0,  1,  0},
-            {0,  -1, 0},
+            {0, 1,  0},
+            {0, -1, 0 },
         };
 
         int positionOrder[]{
@@ -105,7 +105,7 @@ public:
         for (int i = 0; i < vertices.size(); i++)
         {
             int cornerIndex = positionOrder[i];
-            vertices[i] = {cornerPositions[cornerIndex], normals[i / 6]};
+            vertices[i] = {cornerPositions[cornerIndex], normals[i/4]};
         }
 
         // Look over indices and add face offset

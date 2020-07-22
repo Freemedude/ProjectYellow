@@ -16,7 +16,7 @@ void Camera::InitPerspective(float fov, float aspectRatio, float near, float far
 glm::mat4 Camera::ViewMatrix()
 {
     float pitch = glm::radians(m_transform.rotation.x);
-    float yaw = glm::radians(m_transform.rotation.y) - glm::half_pi<float>();
+    float yaw = glm::radians(m_transform.rotation.y);
 
     glm::vec3 lookAt;
     lookAt.x = glm::cos(yaw) * glm::cos(pitch);

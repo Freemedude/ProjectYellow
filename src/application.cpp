@@ -7,12 +7,15 @@
 #include "application.hpp"
 
 #include <iostream>
+#include <cassert>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 Application::Application()
 {
+
+    double start = glfwGetTime();
     m_window.Init("Project Yellow", 1280, 720, &m_inputs);
 
     glEnable(GL_DEPTH_TEST);
@@ -32,6 +35,9 @@ Application::Application()
     m_camera.InitPerspective(fov, aspectRatio, 0.1f, 100.0f);
     m_camera.Transform().position = {0, 0, 10};
     m_camera.Transform().rotation = {0, 0, 0};
+    double end = glfwGetTime();
+    double elapsed = end - start;
+    std::cout << elapsed;
 }
 
 Application::~Application()
@@ -47,6 +53,8 @@ bool Application::Done()
 
 void Application::Update()
 {
+    double frameStart = glfwGetTime();
+
     HandleInputs();
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -61,6 +69,8 @@ void Application::Update()
 
     RenderGui();
     m_window.SwapBuffers();
+    m_frameEnd = glfwGetTime();
+    m_deltaTime = glm::max(m_frameEnd - frameStart, 0.0);
 }
 
 void Application::RenderGui()
@@ -86,7 +96,12 @@ void Application::RenderGui()
 
 
     ImGui::TextColored(headerColor, "Light");
-    ImGui::DragFloat3("Light Direction", &m_lightDirection[0], 0.25f, -1, 1);
+    ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
+    ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.1f, 0, 1);
+    ImGui::SliderFloat("Light Pitch", &m_lightPitch, -180, 180);
+    ImGui::SliderFloat("Light Yaw", &m_lightYaw, -180, 180);
+    ImGui::SliderFloat("Light Pitch Speed", &m_lightPitchSpeed, -180, 180);
+    ImGui::SliderFloat("Light Yaw Speed", &m_lightYawSpeed, -180, 180);
 
     ImGui::TextColored(headerColor, "Camera");
     ImGui::DragFloat3("Cam_Position", &m_camera.Transform().position[0]);
@@ -105,7 +120,6 @@ void Application::InitializeImGui()
     ImGuiIO &io = ImGui::GetIO();
     (void) io;
     const char *glsl_version = "#version 450";
-    io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     // Setup Platform/Renderer bindings
@@ -184,25 +198,41 @@ void Application::HandleCameraInputs()
 
 void Application::RenderScene()
 {
-    glm::mat4 lightMatrix = glm::lookAt({0, 0, 0}, m_lightDirection, {0, 1, 0});
-    glm::vec3 lightDir = lightMatrix * glm::vec4{0, 0, -1, 0};
+    m_lightPitch += m_lightPitchSpeed * m_deltaTime;
+    float pitch = glm::radians(m_lightPitch) ;
+
+    m_lightYaw += m_lightYawSpeed * m_deltaTime;
+    float yaw = glm::radians(m_lightYaw);
+
+    glm::vec4 direction = {0, 0, -1, 0};
+
+    direction = glm::rotateX(direction, pitch);
+    direction = glm::rotateY(direction, yaw);
 
     for (auto model : m_scene.Models())
     {
-        glm::mat4 modelMatrix = model->GetTransform().Matrix();
-
-        glm::mat4 matrix =
-            m_camera.ViewProjectionMatrix() *
-            modelMatrix;
+        glm::mat4 modelMat = model->GetTransform().Matrix();
+        glm::mat4 viewMat = m_camera.ViewMatrix();
+        glm::mat4 modelViewMat = viewMat * modelMat;
+        glm::mat4 projMat = m_camera.ProjectionMatrix();
+        glm::mat4 mvp =
+            projMat *
+            modelViewMat;
 
         auto mat = model->GetMaterial();
         auto pipeline = mat->Pipeline();
 
         pipeline->Use();
 
-        pipeline->SetMatrix4("u_matrix", matrix);
+
+        pipeline->SetMatrix4("u_model", modelMat);
+        pipeline->SetMatrix4("u_view", viewMat);
+        pipeline->SetMatrix4("u_modelView", modelViewMat);
+        pipeline->SetMatrix4("u_mvp", mvp);
         pipeline->SetVector4("u_color", mat->Color());
-        pipeline->SetVector3("u_lightDirection", lightDir);
+        pipeline->SetVector3("u_lightDirection", direction);
+        pipeline->SetFloat("u_ambientIntensity", m_ambientIntensity);
+        pipeline->SetVector3("u_ambientColor", m_ambientColor);
 
 
         auto mesh = model->GetMesh();

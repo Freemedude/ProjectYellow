@@ -58,28 +58,41 @@ void RasterPipeline::Reload()
 int RasterPipeline::GetLocation(const std::string &name)
 {
     int location = glGetUniformLocation(m_id, name.c_str());
-    if (location == -1)
-    {
-        throw std::runtime_error(
-            "Could not get uniform location with name: " + name);
-    }
     return location;
 }
 
 void RasterPipeline::SetMatrix4(const std::string &name, glm::mat4 mat)
 {
     int location = GetLocation(name);
-    glUniformMatrix4fv(location, 1, false, &mat[0][0]);
+    if (location != -1)
+    {
+        glUniformMatrix4fv(location, 1, false, &mat[0][0]);
+    }
 }
 
 void RasterPipeline::SetVector3(const std::string &name, glm::vec3 vec)
 {
     int location = GetLocation(name);
-    glUniform3fv(location, 1, &vec[0]);
+    if (location != -1)
+    {
+        glUniform3fv(location, 1, &vec[0]);
+    }
+}
+
+void RasterPipeline::SetFloat(const std::string &name, float f)
+{
+    int location = GetLocation(name);
+    if (location != -1)
+    {
+        glUniform1f(location, f);
+    }
 }
 
 void RasterPipeline::SetVector4(const std::string &name, glm::vec4 vec)
 {
     int location = GetLocation(name);
-    glUniform4fv(location, 1, &vec[0]);
+    if (location != -1)
+    {
+        glUniform4fv(location, 1, &vec[0]);
+    }
 }

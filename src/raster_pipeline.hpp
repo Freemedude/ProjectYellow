@@ -29,6 +29,7 @@ public:
     void Reload();
 
     void SetMatrix4(const std::string &name, glm::mat4 mat);
+    void SetFloat(const std::string &name, float f);
     void SetVector3(const std::string &name, glm::vec3 vec);
     void SetVector4(const std::string &name, glm::vec4 vec);
 
