@@ -10,21 +10,9 @@
 #include <string>
 #include <filesystem>
 
+
+#include "file.hpp"
 #include "integers.h"
-
-// TODO: File should be in its own file
-class File
-{
-public:
-    File(const char *path);
-    ~File();
-
-    i64 Size() const;
-    char *Text();
-private:
-    char *m_text;
-    i64 m_size;
-};
 
 class Assets
 {

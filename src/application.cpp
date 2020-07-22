@@ -233,6 +233,7 @@ void Application::RenderScene()
         pipeline->SetVector3("u_lightDirection", direction);
         pipeline->SetFloat("u_ambientIntensity", m_ambientIntensity);
         pipeline->SetVector3("u_ambientColor", m_ambientColor);
+        pipeline->SetVector3("u_cameraPosition", m_camera.Transform().position);
 
 
         auto mesh = model->GetMesh();
