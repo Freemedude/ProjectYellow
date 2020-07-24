@@ -21,13 +21,11 @@ public:
 
     void Init(const std::string &label, uint target, void* data, u64 count, u64 size);
     void Bind() const;
-    void Unbind() const;
-    uint Count();
 
+    u64 mCount = 0;
 private:
-    uint m_id;
-    uint m_target;
-    uint m_count;
+    uint m_id = 0;
+    uint m_target = 0;
 
 };
 

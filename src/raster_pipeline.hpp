@@ -18,7 +18,7 @@ class RasterPipeline
 private:
     Shader m_vShader{};
     Shader m_fShader{};
-    uint m_id = -1;
+    uint m_id = 0;
 
 public:
     RasterPipeline();

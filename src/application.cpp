@@ -14,15 +14,24 @@
 
 Application::Application()
 {
+}
 
-    double start = glfwGetTime();
+Application::~Application()
+{
+    glfwTerminate();
+}
+
+
+
+void Application::Init()
+{
     m_window.Init("Project Yellow", 1280, 720, &m_inputs);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glDepthRange(-1, 1);
 
-    InitializeImGui();
+    InitDearImGui();
     m_assets.Init("assets");
 
     m_inputs.invalidLastCursor = true;
@@ -33,87 +42,13 @@ Application::Application()
     float aspectRatio = (float) frameBufferSize.x / (float) frameBufferSize.y;
     float fov = glm::radians(45.0f);
     m_camera.InitPerspective(fov, aspectRatio, 0.1f, 100.0f);
-    m_camera.Transform().position = {0, 0, 10};
-    m_camera.Transform().rotation = {0, 0, 0};
-    double end = glfwGetTime();
-    double elapsed = end - start;
-    std::cout << elapsed;
+    m_camera.Position() = {0, 0, 10};
+    m_camera.Rotation() = {0, 0, 0};
+
+    m_assets.GetImage("images/test.png");
 }
 
-Application::~Application()
-{
-    glfwTerminate();
-}
-
-bool Application::Done()
-{
-    return m_window.ShouldClose();
-}
-
-
-void Application::Update()
-{
-    double frameStart = glfwGetTime();
-
-    HandleInputs();
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-
-    RenderScene();
-
-    RenderGui();
-    m_window.SwapBuffers();
-    m_frameEnd = glfwGetTime();
-    m_deltaTime = glm::max(m_frameEnd - frameStart, 0.0);
-}
-
-void Application::RenderGui()
-{
-    ImVec4 headerColor = {1, 0, 0, 1};
-
-    ImGui::Begin("Hello, world!");
-    float frameRate = ImGui::GetIO().Framerate;
-    ImGui::Text(
-        "Application average %.3f ms/frame (%.1f FPS)",
-        1000.0f /
-        frameRate, frameRate);
-
-    ImGui::Checkbox("Cursor disabled", &m_inputs.cursorLocked);
-    if (m_inputs.cursorLocked)
-    {
-        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
-    } else
-    {
-        uint mask = ~ImGuiConfigFlags_NoMouse;
-        ImGui::GetIO().ConfigFlags &= mask;
-    }
-
-
-    ImGui::TextColored(headerColor, "Light");
-    ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
-    ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.1f, 0, 1);
-    ImGui::SliderFloat("Light Pitch", &m_lightPitch, -180, 180);
-    ImGui::SliderFloat("Light Yaw", &m_lightYaw, -180, 180);
-    ImGui::SliderFloat("Light Pitch Speed", &m_lightPitchSpeed, -180, 180);
-    ImGui::SliderFloat("Light Yaw Speed", &m_lightYawSpeed, -180, 180);
-
-    ImGui::TextColored(headerColor, "Camera");
-    ImGui::DragFloat3("Cam_Position", &m_camera.Transform().position[0]);
-    ImGui::DragFloat3("Cam_Rotation", &m_camera.Transform().rotation[0]);
-
-    ImGui::End();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-void Application::InitializeImGui()
+void Application::InitDearImGui()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -125,6 +60,43 @@ void Application::InitializeImGui()
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window.GlfwWindow(), true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+bool Application::Done()
+{
+    return m_window.ShouldClose();
+}
+
+void Application::Update()
+{
+    StartFrame();
+
+    RenderScene();
+
+    RenderGui();
+
+    EndFrame();
+}
+
+void Application::StartFrame()
+{
+    m_frameStart = glfwGetTime();
+
+    HandleInputs();
+
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void Application::EndFrame()
+{
+    m_window.SwapBuffers();
+    m_frameEnd = glfwGetTime();
+    m_deltaTime = (float)glm::max(m_frameEnd - m_frameStart, 0.0);
 }
 
 void Application::HandleInputs()
@@ -145,38 +117,19 @@ void Application::HandleInputs()
     }
 }
 
+
 void Application::HandleCameraInputs()
 {
-    // Camera Controls
-    if (m_inputs.forward)
+    auto directionFromBooleans = [](bool negative, bool positive) -> float
     {
-        m_camera.AddLocal({0, 0, m_movespeed});
-    }
-
-    if (m_inputs.back)
-    {
-        m_camera.AddLocal({0, 0, -m_movespeed});
-    }
-
-    if (m_inputs.left)
-    {
-        m_camera.AddLocal({-m_movespeed, 0, 0});
-    }
-
-    if (m_inputs.right)
-    {
-        m_camera.AddLocal({m_movespeed, 0, 0});
-    }
-
-    if (m_inputs.up)
-    {
-        m_camera.Transform().position.y += m_movespeed;
-    }
-
-    if (m_inputs.down)
-    {
-        m_camera.Transform().position.y -= m_movespeed;
-    }
+        float result = float (positive - negative);
+        return result;
+    };
+    glm::vec3 cameraMovement {};
+    cameraMovement.x = directionFromBooleans(m_inputs.left, m_inputs.right);
+    cameraMovement.y = directionFromBooleans(m_inputs.down, m_inputs.up);
+    cameraMovement.z = directionFromBooleans(m_inputs.back, m_inputs.forward);
+    m_camera.AddLocal(cameraMovement * (float)m_deltaTime * m_moveSpeed);
 
     // Rotation
     {
@@ -184,12 +137,14 @@ void Application::HandleCameraInputs()
         delta.y = -delta.y;
         delta *= m_mouseSensitivity;
 
-        glm::vec2 newRot = delta.yx + m_camera.Transform().rotation.xy;
+        glm::vec3 deltaAdjusted = {delta.y, delta.x, 0};
+
+        glm::vec3 newRot = deltaAdjusted + m_camera.Rotation();
 
         // Avoid gimbal lock
         newRot.x = glm::clamp(newRot.x, -89.0f, 89.0f);
 
-        m_camera.Transform().rotation.xy = newRot;
+        m_camera.Rotation() = newRot;
 
         m_inputs.lastMousePos = m_inputs.mousePos;
         m_inputs.invalidLastCursor = false;
@@ -199,7 +154,7 @@ void Application::HandleCameraInputs()
 void Application::RenderScene()
 {
     m_lightPitch += m_lightPitchSpeed * m_deltaTime;
-    float pitch = glm::radians(m_lightPitch) ;
+    float pitch = glm::radians(m_lightPitch);
 
     m_lightYaw += m_lightYawSpeed * m_deltaTime;
     float yaw = glm::radians(m_lightYaw);
@@ -211,36 +166,78 @@ void Application::RenderScene()
 
     for (auto model : m_scene.Models())
     {
-        glm::mat4 modelMat = model->GetTransform().Matrix();
+        glm::mat4 modelMat = model->m_transform.Matrix();
         glm::mat4 viewMat = m_camera.ViewMatrix();
         glm::mat4 modelViewMat = viewMat * modelMat;
         glm::mat4 projMat = m_camera.ProjectionMatrix();
         glm::mat4 mvp =
-            projMat *
-            modelViewMat;
+                projMat *
+                modelViewMat;
 
-        auto mat = model->GetMaterial();
-        auto pipeline = mat->Pipeline();
+        auto mat = model->m_material;
+        auto pipeline = mat->m_pipeline;
 
-        pipeline->Use();
+        mat->m_pipeline->Use();
 
 
         pipeline->SetMatrix4("u_model", modelMat);
         pipeline->SetMatrix4("u_view", viewMat);
         pipeline->SetMatrix4("u_modelView", modelViewMat);
         pipeline->SetMatrix4("u_mvp", mvp);
-        pipeline->SetVector4("u_color", mat->Color());
+        pipeline->SetVector4("u_color", mat->m_color);
         pipeline->SetVector3("u_lightDirection", direction);
         pipeline->SetFloat("u_ambientIntensity", m_ambientIntensity);
         pipeline->SetVector3("u_ambientColor", m_ambientColor);
-        pipeline->SetVector3("u_cameraPosition", m_camera.Transform().position);
+        pipeline->SetVector3("u_cameraPosition", m_camera.Position());
 
 
-        auto mesh = model->GetMesh();
-        mesh->Bind();
+        model->m_mesh->Bind();
 
-        glDrawElements(GL_TRIANGLES, mesh->Count(), GL_UNSIGNED_INT, nullptr);
+        int numIndices = (int) model->m_mesh->Count();
+        glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
     }
 
 }
 
+void Application::RenderGui()
+{
+    ImVec4 headerColor = {1, 0, 0, 1};
+
+    ImGui::Begin("Hello, world!");
+    float frameRate = ImGui::GetIO().Framerate;
+    ImGui::Text(
+        "Application average %.3f ms/frame (%.1f FPS)",
+        1000.0f /
+        frameRate, frameRate);
+    ImGui::Text(
+        "MS This Frame: %.3fms",
+        m_deltaTime * 1000);
+
+    ImGui::Checkbox("Cursor disabled", &m_inputs.cursorLocked);
+    if (m_inputs.cursorLocked)
+    {
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+    } else
+    {
+        int mask = ~ImGuiConfigFlags_NoMouse;
+        ImGui::GetIO().ConfigFlags &= mask;
+    }
+
+
+    ImGui::TextColored(headerColor, "Light");
+    ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
+    ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.1f, 0, 1);
+    ImGui::SliderFloat("Light Pitch", &m_lightPitch, -180, 180);
+    ImGui::SliderFloat("Light Yaw", &m_lightYaw, -180, 180);
+    ImGui::SliderFloat("Light Pitch Speed", &m_lightPitchSpeed, -180, 180);
+    ImGui::SliderFloat("Light Yaw Speed", &m_lightYawSpeed, -180, 180);
+
+    ImGui::TextColored(headerColor, "Camera");
+    ImGui::DragFloat3("Cam_Position", &m_camera.Position()[0]);
+    ImGui::DragFloat3("Cam_Rotation", &m_camera.Rotation()[0]);
+
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}

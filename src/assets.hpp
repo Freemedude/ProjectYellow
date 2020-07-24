@@ -10,9 +10,9 @@
 #include <string>
 #include <filesystem>
 
-
 #include "file.hpp"
 #include "integers.h"
+#include "image.hpp"
 
 class Assets
 {
@@ -27,6 +27,7 @@ public:
     static Assets& Instance();
 
     File GetFile(const std::string& relativePath);
+    Image GetImage(const std::string& path);
 private:
     std::filesystem::path GetAssetPath(const std::string &assetDirName);
 };

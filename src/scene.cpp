@@ -17,9 +17,7 @@ void Scene::TestScene()
     std::random_device dev;
     std::mt19937 rng(dev());
 
-
     // Materials
-
     auto pipeline = std::make_shared<RasterPipeline>();
     pipeline->Init("shaders/Default.vert", "shaders/Default.frag");
     m_pipelines.push_back(pipeline);
@@ -33,7 +31,7 @@ void Scene::TestScene()
     {
         auto mat = std::make_shared<Material>();
         glm::vec4 color{colorDist(rng), colorDist(rng), colorDist(rng), colorDist(rng)};
-        mat->Init(color, pipeline);
+        mat->Init(color, pipeline, nullptr);
         m_materials.push_back(mat);
     }
 
@@ -45,10 +43,10 @@ void Scene::TestScene()
     auto pFloor = std::make_shared<Model>();
     pFloor->Init(pQuad, m_materials[matDist(rng)]);
 
-    pFloor->GetTransform().position.y = -5;
-    pFloor->GetTransform().rotation.x = -glm::radians(90.0);
-    pFloor->GetTransform().scale.x = 25;
-    pFloor->GetTransform().scale.y = 25;
+    pFloor->Position().y = -5;
+    pFloor->Rotation().x = -glm::radians(90.0f);
+    pFloor->Scale().x = 25;
+    pFloor->Scale().y = 25;
     m_models.push_back(pFloor);
 
     // Cubes
@@ -58,17 +56,17 @@ void Scene::TestScene()
     // Debug cube
     auto cubeMaterial = std::make_shared<Material>();
     m_materials.push_back(cubeMaterial);
-    cubeMaterial->Init({1, 1, 0, 1}, pipeline);
+    cubeMaterial->Init({1, 1, 0, 1}, pipeline, nullptr);
 
     auto debugCube = std::make_shared<Model>();
     m_models.push_back(debugCube);
     debugCube->Init(pCube, cubeMaterial);
-    debugCube->GetTransform().scale = {5, 5, 5};
+    debugCube->Scale() = {5, 5, 5};
 
-    std::uniform_real_distribution<> positionDist(-50, 50);
-    std::uniform_real_distribution<> positionYDist(0, 20);
-    std::uniform_real_distribution<> rotationDist(-20, 20);
-    std::uniform_real_distribution<> scaleDist(0.1, 1.5);
+    std::uniform_real_distribution<float> positionDist(-50.0f, 50.0);
+    std::uniform_real_distribution<float> positionYDist(0.0f, 20.0);
+    std::uniform_real_distribution<float> rotationDist(-20.0f, 20.0);
+    std::uniform_real_distribution<float> scaleDist(0.1f, 1.5f);
 
     int numCubes = 100;
 
@@ -77,18 +75,17 @@ void Scene::TestScene()
         auto model = std::make_shared<Model>();
         model->Init(pCube, m_materials[matDist(rng)]);
 
-        Transform &transform = model->GetTransform();
-        transform.position.x = positionDist(rng);
-        transform.position.y = positionYDist(rng);
-        transform.position.z = positionDist(rng);
+        model->Position().x = positionDist(rng);
+        model->Position().y = positionYDist(rng);
+        model->Position().z = positionDist(rng);
 
-        transform.rotation.y = rotationDist(rng);
-        transform.rotation.y = rotationDist(rng);
-        transform.rotation.z = rotationDist(rng);
+        model->Rotation().x = rotationDist(rng);
+        model->Rotation().y = rotationDist(rng);
+        model->Rotation().z = rotationDist(rng);
 
-        transform.scale.x = scaleDist(rng);
-        transform.scale.z = scaleDist(rng);
-        transform.scale.z = scaleDist(rng);
+        model->Scale().x = scaleDist(rng);
+        model->Scale().y = scaleDist(rng);
+        model->Scale().z = scaleDist(rng);
         m_models.push_back(model);
     }
 }

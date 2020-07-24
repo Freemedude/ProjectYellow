@@ -6,18 +6,12 @@
 
 #include "material.hpp"
 
-void Material::Init(glm::vec4 color, std::shared_ptr<RasterPipeline> pipeline)
+void Material::Init(
+    glm::vec4 color,
+    std::shared_ptr<RasterPipeline> pipeline,
+    std::shared_ptr<Texture> texture)
 {
     m_color = color;
     m_pipeline = pipeline;
-}
-
-glm::vec4 Material::Color()
-{
-    return m_color;
-}
-
-std::shared_ptr<RasterPipeline> Material::Pipeline()
-{
-    return m_pipeline;
+    m_texture = texture;
 }

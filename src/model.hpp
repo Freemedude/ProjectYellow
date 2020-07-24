@@ -15,19 +15,18 @@
 
 class Model
 {
-private:
+public:
     std::shared_ptr<Mesh> m_mesh {};
     std::shared_ptr<Material> m_material {};
     Transform m_transform {};
 
-public:
     Model() = default;
 
     void Init(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material);
 
-    Transform &GetTransform();
-    std::shared_ptr<Material> GetMaterial();
-    std::shared_ptr<Mesh> GetMesh();
+    glm::vec3 &Position();
+    glm::vec3 &Rotation();
+    glm::vec3 &Scale();
 };
 
 

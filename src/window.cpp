@@ -9,6 +9,8 @@
 #include <iostream>
 #include <string>
 
+#include "utility.hpp"
+
 void GLAPIENTRY GlCb_Message(
     GLenum source,
     GLenum type,
@@ -31,11 +33,9 @@ void Window::Init(const std::string &name, int width, int height, Inputs *inputs
     {
         throw std::runtime_error("Failed to initialize GLFW");
     }
-
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-
     m_window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
     if (!m_window)
     {
@@ -111,21 +111,25 @@ void Window::CursorLocked(bool locked)
         locked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
-void ChangeIfNotRepeat(bool &value, int action)
-{
-    if(action == GLFW_PRESS)
-    {
-        value = true;
-    }
-    else if (action == GLFW_RELEASE)
-    {
-        value = false;
-    }
-}
 
 
 void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    (void)scancode;
+    (void)mods;
+
+    auto changeIfNotRepeat = [](bool &value, int action)
+    {
+        if(action == GLFW_PRESS)
+        {
+            value = true;
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            value = false;
+        }
+    };
+
     Inputs &inputs = InputsFromUserPointer(window);
 
     switch (key)
@@ -140,22 +144,22 @@ void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, i
             }
             break;
         case GLFW_KEY_W:
-            ChangeIfNotRepeat(inputs.forward, action);
+            changeIfNotRepeat(inputs.forward, action);
             break;
         case GLFW_KEY_A:
-            ChangeIfNotRepeat(inputs.left, action);
+            changeIfNotRepeat(inputs.left, action);
             break;
         case GLFW_KEY_S:
-            ChangeIfNotRepeat(inputs.back, action);
+            changeIfNotRepeat(inputs.back, action);
             break;
         case GLFW_KEY_D:
-            ChangeIfNotRepeat(inputs.right, action);
+            changeIfNotRepeat(inputs.right, action);
             break;
         case GLFW_KEY_R:
-            ChangeIfNotRepeat(inputs.up, action);
+            changeIfNotRepeat(inputs.up, action);
             break;
         case GLFW_KEY_F:
-            ChangeIfNotRepeat(inputs.down, action);
+            changeIfNotRepeat(inputs.down, action);
             break;
     }
 }
@@ -188,6 +192,10 @@ void GLAPIENTRY GlCb_Message(
     const GLchar *message,
     const void *userParam)
 {
+    UNUSED(source);
+    UNUSED(length);
+    UNUSED(userParam);
+
     // ignore non-significant error/warning codes
     if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
     std::string typeBanner = type == GL_DEBUG_TYPE_ERROR ? "ERROR" : "";

@@ -18,6 +18,7 @@ struct Vertex
 {
     glm::vec3 position;
     glm::vec3 normal;
+    glm::vec2 uv;
 };
 
 typedef u32 Index;
@@ -37,15 +38,15 @@ public:
 
     void Bind();
 
-    i32 Count();
+    u64 Count();
 
     static std::shared_ptr<Mesh> make_quad()
     {
         std::vector<Vertex> verts = {
-            {{-0.5, -0.5, 0}, {0, 0, 1}},
-            {{0.5,  -0.5, 0}, {0, 0, 1}},
-            {{0.5,  0.5,  0}, {0, 0, 1}},
-            {{-0.5, 0.5,  0}, {0, 0, 1}},
+            {{-0.5, -0.5, 0}, {0, 0, 1}, {0, 0}},
+            {{0.5,  -0.5, 0}, {0, 0, 1}, {1, 0}},
+            {{0.5,  0.5,  0}, {0, 0, 1}, {1, 1}},
+            {{-0.5, 0.5,  0}, {0, 0, 1}, {0, 1}},
         };
 
         std::vector<Index> indices = {
@@ -85,12 +86,19 @@ public:
 
         // Normals are used as color for now
         glm::vec3 normals[]{
-            {0, 0,  1},
+            {0,  0,  1},
             {1,  0,  0},
             {0,  0,  -1},
             {-1, 0,  0},
-            {0, 1,  0},
-            {0, -1, 0 },
+            {0,  1,  0},
+            {0,  -1, 0},
+        };
+
+        glm::vec2 uvs[]{
+            {0,  0},
+            {1,  0},
+            {1,  1},
+            {0, 1}
         };
 
         int positionOrder[]{
@@ -105,7 +113,8 @@ public:
         for (int i = 0; i < vertices.size(); i++)
         {
             int cornerIndex = positionOrder[i];
-            vertices[i] = {cornerPositions[cornerIndex], normals[i/4]};
+
+            vertices[i] = {cornerPositions[cornerIndex], normals[i / 4], uvs[i % 4]};
         }
 
         // Look over indices and add face offset
@@ -128,8 +137,6 @@ public:
         pMesh->Init(vertices, indices);
         return pMesh;
     }
-
-
 };
 
 

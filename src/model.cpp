@@ -12,19 +12,17 @@ void Model::Init(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
     m_material = material;
 }
 
-Transform &Model::GetTransform()
+glm::vec3 &Model::Position()
 {
-    return m_transform;
+    return m_transform.position;
 }
 
-std::shared_ptr<Material> Model::GetMaterial()
+glm::vec3 &Model::Rotation()
 {
-    return m_material;
+    return m_transform.rotation;
 }
-
-
-std::shared_ptr<Mesh> Model::GetMesh()
+glm::vec3 &Model::Scale()
 {
-    return m_mesh;
+    return m_transform.scale;
 }
 

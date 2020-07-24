@@ -35,7 +35,7 @@ private:
     Inputs m_inputs{};
     Scene m_scene{};
 
-    float m_movespeed = 0.05f;
+    float m_moveSpeed = 10.0f;
     float m_mouseSensitivity = 0.05f;
 
     float m_lightPitchSpeed = 0;
@@ -47,17 +47,23 @@ private:
     glm::vec3 m_ambientColor{0.1, 0.1, 0.2};
     float m_ambientIntensity = 0;
 
-    double m_deltaTime {};
-    double m_frameEnd {};
+    float m_deltaTime = 0;
+    double m_frameStart = 0;
+    double m_frameEnd = 0;
 
     Camera m_camera {};
+
 
 public:
     Application();
 
     ~Application();
 
+    void Init();
+
+    void StartFrame();
     void Update();
+    void EndFrame();
 
     void RenderGui();
 
@@ -66,7 +72,8 @@ public:
 private:
 
 
-    void InitializeImGui();
+    void InitOpenGL();
+    void InitDearImGui();
 
     void HandleInputs();
 

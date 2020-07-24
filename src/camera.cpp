@@ -33,19 +33,20 @@ glm::mat4 Camera::ProjectionMatrix()
     return m_projectionMatrix;
 }
 
-glm::mat4 Camera::ViewProjectionMatrix()
-{
-    return ProjectionMatrix() * ViewMatrix();
-}
-
-Transform &Camera::Transform()
-{
-    return m_transform;
-}
 
 void Camera::AddLocal(glm::vec3 v)
 {
     m_transform.position += glm::normalize(glm::cross(m_lookAt, {0, 1, 0})) * v.x;
     m_transform.position += glm::vec3(0, 1, 0) * v.y;
     m_transform.position += m_lookAt * v.z;
+}
+
+glm::vec3 &Camera::Position()
+{
+    return m_transform.position;
+}
+
+glm::vec3 &Camera::Rotation()
+{
+    return m_transform.rotation;
 }

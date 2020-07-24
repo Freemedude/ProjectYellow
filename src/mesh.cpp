@@ -10,12 +10,13 @@
 
 Mesh::~Mesh()
 {
-    std::cout << "Destroyed Mesh" << std::endl;
+    std::cout << "Destroyed Mesh " << std::endl;
     glDeleteVertexArrays(1, &m_id);
 }
 
 void Mesh::Init(std::vector<Vertex> &verts, std::vector<Index> &indices)
 {
+
     glGenVertexArrays(1, &m_id);
 
     m_vBuffer.Init(
@@ -34,16 +35,31 @@ void Mesh::Init(std::vector<Vertex> &verts, std::vector<Index> &indices)
 
     Bind();
 
+    i64 offset = 0;
+    int index = 0;
+
+    auto addAttribute = [&](uint type, int count, bool normalize = false)
+    {
+        int typeSize = 0;
+        if(type == GL_FLOAT)
+        {
+            typeSize = 4;
+        } else{
+            throw std::invalid_argument("Unknown type passed to addAttribute");
+        }
+
+        glVertexAttribPointer(index, count, type, normalize, sizeof(Vertex), (void*) offset);
+        glEnableVertexAttribArray(index);
+        offset += typeSize * count;
+        index++;
+    };
+
     // Position
-    glVertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE,
-        sizeof(Vertex), nullptr);
-    glEnableVertexAttribArray(0);
-    // Color
-    glVertexAttribPointer(
-        1, 3, GL_FLOAT, GL_FALSE,
-        sizeof(Vertex), (void *) offsetof(Vertex, normal));
-    glEnableVertexAttribArray(1);
+    addAttribute(GL_FLOAT, 3);
+    // Normal
+    addAttribute(GL_FLOAT, 3);
+    // Uv
+    addAttribute(GL_FLOAT, 2);
 
 }
 
@@ -54,7 +70,7 @@ void Mesh::Bind()
     m_iBuffer.Bind();
 }
 
-i32 Mesh::Count()
+u64 Mesh::Count()
 {
-    return m_iBuffer.Count();
+    return m_iBuffer.mCount;
 }

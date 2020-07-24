@@ -14,7 +14,7 @@
 
 inline void SetOpenGlLabel(uint type, uint object, std::string label)
 {
-    glObjectLabel(GL_BUFFER, object, label.size(), label.c_str());
+    glObjectLabel(type, object, (GLsizei)label.size(), label.c_str());
 }
 
 inline std::string GetOpenGlLabel(uint type, uint object)
