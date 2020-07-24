@@ -12,12 +12,14 @@ in vec3 v_oNormal;
 in vec3 v_wNormal;
 in vec3 v_position;
 in vec2 v_uv;
+uniform sampler2D ourTexture;
 
 out vec4 FragColor;
 
+
 vec3 ambient()
 {
-    return u_ambientColor * u_ambientIntensity * u_color.xyz;
+    return u_ambientColor * u_ambientIntensity + u_color.xyz;
 }
 
 void main()
@@ -30,5 +32,6 @@ void main()
     float attenuation = dot(normal, light);
     vec3 color = ambient + attenuation * u_color.xyz;
 
-    FragColor = vec4(v_uv, 0, 1);
+//    FragColor = vec4(color, 1);
+    FragColor = texture(ourTexture, v_uv) *  vec4(color, 1);
 }

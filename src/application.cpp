@@ -12,16 +12,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-Application::Application()
-{
-}
-
 Application::~Application()
 {
     glfwTerminate();
 }
-
-
 
 void Application::Init()
 {
@@ -41,11 +35,9 @@ void Application::Init()
     glm::ivec2 frameBufferSize = m_window.FrameBufferSize();
     float aspectRatio = (float) frameBufferSize.x / (float) frameBufferSize.y;
     float fov = glm::radians(45.0f);
-    m_camera.InitPerspective(fov, aspectRatio, 0.1f, 100.0f);
+    m_camera.InitPerspective(fov, aspectRatio, 0.1f, 1000.0f);
     m_camera.Position() = {0, 0, 10};
     m_camera.Rotation() = {0, 0, 0};
-
-    m_assets.GetImage("images/test.png");
 }
 
 void Application::InitDearImGui()
@@ -96,7 +88,7 @@ void Application::EndFrame()
 {
     m_window.SwapBuffers();
     m_frameEnd = glfwGetTime();
-    m_deltaTime = (float)glm::max(m_frameEnd - m_frameStart, 0.0);
+    m_deltaTime = (float) glm::max(m_frameEnd - m_frameStart, 0.0);
 }
 
 void Application::HandleInputs()
@@ -117,19 +109,30 @@ void Application::HandleInputs()
     }
 }
 
+float ClampDegrees(float degrees)
+{
+    if (degrees > 360)
+    {
+        return -360;
+    } else if (degrees < -360)
+    {
+        return 360;
+    }
+    return degrees;
+}
 
 void Application::HandleCameraInputs()
 {
     auto directionFromBooleans = [](bool negative, bool positive) -> float
     {
-        float result = float (positive - negative);
+        float result = float(positive - negative);
         return result;
     };
-    glm::vec3 cameraMovement {};
+    glm::vec3 cameraMovement{};
     cameraMovement.x = directionFromBooleans(m_inputs.left, m_inputs.right);
     cameraMovement.y = directionFromBooleans(m_inputs.down, m_inputs.up);
     cameraMovement.z = directionFromBooleans(m_inputs.back, m_inputs.forward);
-    m_camera.AddLocal(cameraMovement * (float)m_deltaTime * m_moveSpeed);
+    m_camera.AddLocal(cameraMovement * (float) m_deltaTime * m_moveSpeed);
 
     // Rotation
     {
@@ -170,15 +173,13 @@ void Application::RenderScene()
         glm::mat4 viewMat = m_camera.ViewMatrix();
         glm::mat4 modelViewMat = viewMat * modelMat;
         glm::mat4 projMat = m_camera.ProjectionMatrix();
-        glm::mat4 mvp =
-                projMat *
-                modelViewMat;
+        glm::mat4 mvp = projMat * modelViewMat;
 
         auto mat = model->m_material;
         auto pipeline = mat->m_pipeline;
+        glBindTexture(GL_TEXTURE_2D, mat->m_texture->m_id);
 
         mat->m_pipeline->Use();
-
 
         pipeline->SetMatrix4("u_model", modelMat);
         pipeline->SetMatrix4("u_view", viewMat);
@@ -206,12 +207,12 @@ void Application::RenderGui()
     ImGui::Begin("Hello, world!");
     float frameRate = ImGui::GetIO().Framerate;
     ImGui::Text(
-        "Application average %.3f ms/frame (%.1f FPS)",
-        1000.0f /
-        frameRate, frameRate);
+            "Application average %.3f ms/frame (%.1f FPS)",
+            1000.0f /
+            frameRate, frameRate);
     ImGui::Text(
-        "MS This Frame: %.3fms",
-        m_deltaTime * 1000);
+            "MS This Frame: %.3fms",
+            m_deltaTime * 1000);
 
     ImGui::Checkbox("Cursor disabled", &m_inputs.cursorLocked);
     if (m_inputs.cursorLocked)

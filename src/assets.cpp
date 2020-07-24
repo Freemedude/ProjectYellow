@@ -27,11 +27,12 @@ Assets &Assets::Instance()
     return *m_instance;
 }
 
-Image Assets::GetImage(const std::string &path)
+Image Assets::GetImage(const std::string &path, int channels)
 {
-    File file = GetFile(path);
+    Assets &instance = Instance();
+    File file = instance.GetFile(path);
 
-    Image result = result.FromBytes((unsigned char *) file.Text(), (int)file.Size(), 3);
+    Image result = result.FromBytes((unsigned char *) file.Text(), (int)file.Size(), channels);
     return result;
 }
 

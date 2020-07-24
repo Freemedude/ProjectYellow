@@ -11,11 +11,11 @@
 class Image
 {
 public:
-    int width;
-    int height;
-    int channels;
-    int size;
-    unsigned char *data;
+    int m_width;
+    int m_height;
+    int m_channels;
+    int m_size;
+    unsigned char *m_data;
 
     static Image FromBytes(unsigned char *bytes, int numBytes, int desiredChannels);
 

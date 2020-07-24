@@ -15,11 +15,11 @@
 class Texture
 {
 public:
-    GpuBuffer m_buffer{};
-    std::shared_ptr<Image> m_image;
-
+    Image m_image;
+    uint m_id = 0;
     Texture() = default;
-    void Init(const std::string &name, std::shared_ptr<Image> image);
+
+    void Init(const std::string &name, const std::string &imagePath, int channels);
 };
 
 

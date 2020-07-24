@@ -20,12 +20,6 @@
 #include "camera.hpp"
 #include "scene.hpp"
 
-struct DebugGuiSettings
-{
-    bool lighting;
-    bool camera;
-};
-
 class Application
 {
 private:
@@ -38,14 +32,14 @@ private:
     float m_moveSpeed = 10.0f;
     float m_mouseSensitivity = 0.05f;
 
-    float m_lightPitchSpeed = 0;
-    float m_lightYawSpeed = 0;
+    glm::vec3 m_ambientColor{0.9, 0.9, 0.1};
+    float m_ambientIntensity = 0.1;
 
     float m_lightPitch = 0;
     float m_lightYaw = 0;
 
-    glm::vec3 m_ambientColor{0.1, 0.1, 0.2};
-    float m_ambientIntensity = 0;
+    float m_lightYawSpeed = 30.0f;
+    float m_lightPitchSpeed = 10.0f;
 
     float m_deltaTime = 0;
     double m_frameStart = 0;
@@ -55,7 +49,7 @@ private:
 
 
 public:
-    Application();
+    Application() = default;
 
     ~Application();
 
