@@ -12,6 +12,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
+#include "utility.hpp"
+
 Application::~Application()
 {
     glfwTerminate();
@@ -57,6 +59,14 @@ void Application::InitDearImGui()
 bool Application::Done()
 {
     return m_window.ShouldClose();
+}
+
+float Application::ClampDegrees(float deg)
+{
+    const float degMax = 180.0f;
+    float mod = glm::mod(deg + degMax, degMax * 2);
+    float result = mod - degMax;
+    return result;
 }
 
 void Application::Update()
@@ -109,17 +119,6 @@ void Application::HandleInputs()
     }
 }
 
-float ClampDegrees(float degrees)
-{
-    if (degrees > 360)
-    {
-        return -360;
-    } else if (degrees < -360)
-    {
-        return 360;
-    }
-    return degrees;
-}
 
 void Application::HandleCameraInputs()
 {
@@ -146,7 +145,7 @@ void Application::HandleCameraInputs()
 
         // Avoid gimbal lock
         newRot.x = glm::clamp(newRot.x, -89.0f, 89.0f);
-
+        newRot.y = ClampDegrees(newRot.y);
         m_camera.Rotation() = newRot;
 
         m_inputs.lastMousePos = m_inputs.mousePos;
@@ -203,6 +202,10 @@ void Application::RenderScene()
 void Application::RenderGui()
 {
     ImVec4 headerColor = {1, 0, 0, 1};
+
+    // Sanitize degrees for display
+    m_lightPitch = ClampDegrees(m_lightPitch);
+    m_lightYaw = ClampDegrees(m_lightYaw);
 
     ImGui::Begin("Hello, world!");
     float frameRate = ImGui::GetIO().Framerate;

@@ -32,8 +32,8 @@ private:
     float m_moveSpeed = 10.0f;
     float m_mouseSensitivity = 0.05f;
 
-    glm::vec3 m_ambientColor{0.9, 0.9, 0.1};
-    float m_ambientIntensity = 0.1;
+    glm::vec3 m_ambientColor{0.9f, 0.9f, 0.1f};
+    float m_ambientIntensity = 0.1f;
 
     float m_lightPitch = 0;
     float m_lightYaw = 0;
@@ -45,7 +45,7 @@ private:
     double m_frameStart = 0;
     double m_frameEnd = 0;
 
-    Camera m_camera {};
+    Camera m_camera{};
 
 
 public:
@@ -56,7 +56,9 @@ public:
     void Init();
 
     void StartFrame();
+
     void Update();
+
     void EndFrame();
 
     void RenderGui();
@@ -67,6 +69,7 @@ private:
 
 
     void InitOpenGL();
+
     void InitDearImGui();
 
     void HandleInputs();
@@ -74,6 +77,8 @@ private:
     void HandleCameraInputs();
 
     void RenderScene();
+
+    float ClampDegrees(float deg);
 };
 
 
