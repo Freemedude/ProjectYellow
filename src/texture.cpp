@@ -12,6 +12,7 @@
 
 void Texture::Init(const char *name, const char * imagePath, int channels)
 {
+    m_name = name;
     m_image = Assets::GetImage(imagePath, channels);
 
     uint format = channels == 3 ? GL_RGB : GL_RGBA;
@@ -27,7 +28,4 @@ void Texture::Init(const char *name, const char * imagePath, int channels)
     size_t length = strlen(name);
     glObjectLabel(GL_TEXTURE, m_id, (GLsizei)length, name);
     m_image.Free();
-
-
-
 }

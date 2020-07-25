@@ -14,18 +14,16 @@
 
 class Scene
 {
-private:
+public:
     std::vector<std::shared_ptr<Model>> m_models;
     std::vector<std::shared_ptr<Mesh>> m_meshes;
     std::vector<std::shared_ptr<Material>> m_materials;
     std::vector<std::shared_ptr<RasterPipeline>> m_pipelines;
     std::vector<std::shared_ptr<Texture>> m_textures;
 
-public:
     Scene() = default;
     void Init();
     void TestScene();
-    std::vector<std::shared_ptr<Model>> &Models();
 private:
 };
 

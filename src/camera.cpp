@@ -50,3 +50,8 @@ glm::vec3 &Camera::Rotation()
 {
     return m_transform.rotation;
 }
+
+glm::vec3 &Camera::Scale()
+{
+    return m_transform.scale;
+}

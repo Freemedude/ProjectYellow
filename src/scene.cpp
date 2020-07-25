@@ -5,14 +5,18 @@
 //
 
 #include "scene.hpp"
+
+#include <string>
 #include <random>
 
-void Scene::Init() {
+void Scene::Init()
+{
 
 }
 
 template<typename T>
-T Choose(std::vector<T> &v) {
+T Choose(std::vector<T> &v)
+{
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<> indexDist(0, v.size() - 1);
@@ -21,7 +25,8 @@ T Choose(std::vector<T> &v) {
     return result;
 }
 
-void Scene::TestScene() {
+void Scene::TestScene()
+{
     std::random_device dev;
     std::mt19937 rng(dev());
 
@@ -44,10 +49,11 @@ void Scene::TestScene() {
     std::uniform_real_distribution<> colorDist(0, 1);
     std::uniform_int_distribution<> matDist(0, numMats - 1);
 
-    for (int i = 0; i < numMats; i++) {
+    for (int i = 0; i < numMats; i++)
+    {
         auto mat = std::make_shared<Material>();
         glm::vec4 color{colorDist(rng), colorDist(rng), colorDist(rng), colorDist(rng)};
-        mat->Init(color, pipeline, stickFigure);
+        mat->Init("Material " + std::to_string(i), color, pipeline, stickFigure);
         m_materials.push_back(mat);
     }
 
@@ -57,7 +63,7 @@ void Scene::TestScene() {
 
 
     auto pFloor = std::make_shared<Model>();
-    pFloor->Init(pQuad, m_materials[matDist(rng)]);
+    pFloor->Init("Floor", pQuad, m_materials[matDist(rng)]);
 
     pFloor->Position() = {0, -5, 0};
     pFloor->Rotation() = {-glm::radians(90.0f), 0, 0};
@@ -71,11 +77,11 @@ void Scene::TestScene() {
     // Debug cube
     auto cubeMaterial = std::make_shared<Material>();
     m_materials.push_back(cubeMaterial);
-    cubeMaterial->Init({1, 1, 0, 1}, pipeline, testPng);
+    cubeMaterial->Init("Cube Material", {1, 1, 0, 1}, pipeline, testPng);
 
     auto debugCube = std::make_shared<Model>();
     m_models.push_back(debugCube);
-    debugCube->Init(pCube, cubeMaterial);
+    debugCube->Init("Debug Cube", pCube, cubeMaterial);
     debugCube->Scale() = {5, 5, 5};
 
     std::uniform_real_distribution<float> positionDist(-50.0f, 50.0);
@@ -84,31 +90,28 @@ void Scene::TestScene() {
 
     int numCubes = 100;
 
-    for (int i = 0; i < numCubes; i++) {
+    for (int i = 0; i < numCubes; i++)
+    {
         auto model = std::make_shared<Model>();
-        model->Init(pCube, m_materials[matDist(rng)]);
+        model->Init(std::string("Cube ") + std::to_string(i), pCube, m_materials[matDist(rng)]);
 
         model->Position() = {
-                positionDist(rng),
-                positionDist(rng) * 0.5f + 25.0f,
-                positionDist(rng),
+            positionDist(rng),
+            positionDist(rng) * 0.5f + 25.0f,
+            positionDist(rng),
         };
 
         model->Rotation() = {
-                rotationDist(rng),
-                rotationDist(rng),
-                rotationDist(rng)
+            rotationDist(rng),
+            rotationDist(rng),
+            rotationDist(rng)
         };
 
         model->Scale() = {
-                scaleDist(rng),
-                scaleDist(rng),
-                scaleDist(rng)
+            scaleDist(rng),
+            scaleDist(rng),
+            scaleDist(rng)
         };
         m_models.push_back(model);
     }
-}
-
-std::vector<std::shared_ptr<Model>> &Scene::Models() {
-    return m_models;
 }

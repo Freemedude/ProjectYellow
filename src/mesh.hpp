@@ -26,10 +26,10 @@ typedef u32 Index;
 class Mesh
 {
 private:
-    u32 m_id;
     GpuBuffer m_vBuffer;
     GpuBuffer m_iBuffer;
 public:
+    u32 m_id;
     Mesh() = default;
 
     ~Mesh();

@@ -179,7 +179,7 @@ void Application::RenderScene()
     direction = glm::rotateX(direction, pitch);
     direction = glm::rotateY(direction, yaw);
 
-    for (auto model : m_scene.Models())
+    for (auto model : m_scene.m_models)
     {
         glm::mat4 modelMat = model->m_transform.Matrix();
         glm::mat4 viewMat = m_camera.ViewMatrix();
@@ -263,6 +263,61 @@ void Application::RenderGui()
         LoadRuntimeVariables();
     }
 
+    // scene
+    {
+        const int indentPerLevel = 20;
+        m_debugWindows.scene.show = true;
+        if (ImGui::CollapsingHeader("Scene"))
+        {
+            ImGui::Indent(indentPerLevel);
+            // Meshes
+            if (ImGui::CollapsingHeader("Models"))
+            {
+                ImGui::Indent(indentPerLevel);
+                for (int i = 0; i < m_scene.m_models.size(); i++)
+                {
+                    ImGui::PushID(i);
+                    auto model = m_scene.m_models[i];
+                    ImGui::LabelText("Name", "%s", model->m_name.c_str());
+                    ImGui::LabelText("MeshID", "%d", model->m_mesh->m_id);
+                    ImGui::LabelText("Material", "%s", model->m_material->m_name.c_str());
+                    ImGui::DragFloat3("Position", &model->Position()[0]);
+                    ImGui::DragFloat3("Rotation", &model->Rotation()[0]);
+                    ImGui::DragFloat3("Scale", &model->Scale()[0]);
+                    ImGui::PopID();
+                }
+            }
+            // Materials
+            if (ImGui::CollapsingHeader("Materials"))
+            {
+                ImGui::Indent(indentPerLevel);
+                for (int i = 0; i < m_scene.m_materials.size(); i++)
+                {
+                    ImGui::PushID(i);
+                    auto mat = m_scene.m_materials[i];
+                    ImGui::LabelText("Id", "%s",  mat->m_name.c_str());
+                    ImGui::LabelText("Texture ID", "%d",  mat->m_texture->m_id);
+                    ImGui::DragFloat4("Color", &mat->m_color[0], 0.05f, 0, 1);
+                    ImGui::PopID();
+                }
+            }
+
+            // Textures
+            if (ImGui::CollapsingHeader("Textures"))
+            {
+                ImGui::Indent(indentPerLevel);
+                for (int i = 0; i < m_scene.m_textures.size(); i++)
+                {
+                    ImGui::PushID(i);
+                    auto tex = m_scene.m_textures[i];
+                    ImGui::LabelText("Name", "%s", tex->m_name.c_str());
+                    ImGui::LabelText("Id", "%d", tex->m_id);
+                    ImGui::PopID();
+                }
+            }
+        }
+    }
+
     ImGui::End();
 
     ImGui::Render();
@@ -299,7 +354,8 @@ void Application::LoadRuntimeVariables()
         return v;
     };
     m_moveSpeed = safeGetFloat(m_runtimeVariables, "movement_speed", m_moveSpeed);
-    m_moveSpeedSlowMultiplier = safeGetFloat(m_runtimeVariables, "movement_speed_slow_multiplier", m_moveSpeedSlowMultiplier);
+    m_moveSpeedSlowMultiplier = safeGetFloat(m_runtimeVariables, "movement_speed_slow_multiplier",
+                                             m_moveSpeedSlowMultiplier);
     m_camera.Position() = readVec3("camera_position");
     m_camera.Rotation() = readVec3("camera_rotation");
 }
@@ -310,21 +366,20 @@ void Application::SaveRuntimeVariables()
 
     auto safeSetFloat = [&](Value &v, const char *name, float value)
     {
-        if(v.HasMember(name))
+        if (v.HasMember(name))
         {
             v[name] = value;
-        }
-        else
+        } else
         {
             Value key(name, m_runtimeVariables.GetAllocator());
-            Value val (value);
+            Value val(value);
             v.AddMember(key, value, m_runtimeVariables.GetAllocator());
         }
     };
 
     auto setVec3 = [&](Value &v, const char *name, glm::vec3 vec)
     {
-        if(!m_runtimeVariables.HasMember(name))
+        if (!m_runtimeVariables.HasMember(name))
         {
             Value key(name, m_runtimeVariables.GetAllocator());
             Value val;

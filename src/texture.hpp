@@ -16,6 +16,7 @@ class Texture
 {
 public:
     Image m_image;
+    std::string m_name;
     uint m_id = 0;
 
     Texture() = default;

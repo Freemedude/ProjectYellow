@@ -22,6 +22,21 @@
 
 #include "rapidjson/document.h"
 
+struct DebugSceneWindow
+{
+    bool show;
+    bool models;
+    bool meshes;
+    bool materials;
+    bool textures;
+    bool pipelines;
+};
+
+struct DebugWindows
+{
+     DebugSceneWindow scene;
+};
+
 class Application
 {
 private:
@@ -47,6 +62,8 @@ private:
     float m_deltaTime = 0;
     double m_frameStart = 0;
     double m_frameEnd = 0;
+
+    DebugWindows m_debugWindows {};
 
     Camera m_camera{};
     rapidjson::Document m_runtimeVariables;

@@ -6,8 +6,9 @@
 
 #include "model.hpp"
 
-void Model::Init(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
+void Model::Init(const std::string &name, std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material)
 {
+    m_name = name;
     m_mesh = mesh;
     m_material = material;
 }
