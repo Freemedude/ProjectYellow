@@ -10,7 +10,7 @@
 
 #include "assets.hpp"
 
-void Texture::Init(const std::string &name, const std::string &imagePath, int channels)
+void Texture::Init(const char *name, const char * imagePath, int channels)
 {
     m_image = Assets::GetImage(imagePath, channels);
 
@@ -24,7 +24,8 @@ void Texture::Init(const std::string &name, const std::string &imagePath, int ch
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, format, m_image.m_width, m_image.m_height, 0, format, GL_UNSIGNED_BYTE, m_image.m_data);
     glGenerateMipmap(GL_TEXTURE_2D);
-    glObjectLabel(GL_TEXTURE, m_id, (GLsizei)name.length(), name.c_str());
+    size_t length = strlen(name);
+    glObjectLabel(GL_TEXTURE, m_id, (GLsizei)length, name);
     m_image.Free();
 
 

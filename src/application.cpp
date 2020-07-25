@@ -11,6 +11,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 #include "utility.hpp"
 
@@ -27,6 +29,7 @@ void Application::Init()
     glDepthFunc(GL_LESS);
     glDepthRange(-1, 1);
 
+
     InitDearImGui();
     m_assets.Init("assets");
 
@@ -38,8 +41,12 @@ void Application::Init()
     float aspectRatio = (float) frameBufferSize.x / (float) frameBufferSize.y;
     float fov = glm::radians(45.0f);
     m_camera.InitPerspective(fov, aspectRatio, 0.1f, 1000.0f);
-    m_camera.Position() = {0, 0, 10};
-    m_camera.Rotation() = {0, 0, 0};
+
+
+    m_runtimeFile = Assets::GetFile("runtime.json");
+    m_runtimeVariables.Parse(m_runtimeFile.Text());
+    LoadRuntimeVariables();
+
 }
 
 void Application::InitDearImGui()
@@ -119,7 +126,6 @@ void Application::HandleInputs()
     }
 }
 
-
 void Application::HandleCameraInputs()
 {
     auto directionFromBooleans = [](bool negative, bool positive) -> float
@@ -131,7 +137,14 @@ void Application::HandleCameraInputs()
     cameraMovement.x = directionFromBooleans(m_inputs.left, m_inputs.right);
     cameraMovement.y = directionFromBooleans(m_inputs.down, m_inputs.up);
     cameraMovement.z = directionFromBooleans(m_inputs.back, m_inputs.forward);
-    m_camera.AddLocal(cameraMovement * (float) m_deltaTime * m_moveSpeed);
+    glm::vec3 movement = cameraMovement * (float) m_deltaTime * m_moveSpeed;
+
+    if (m_inputs.moveSlow)
+    {
+        movement *= m_moveSpeedSlowMultiplier;
+    }
+
+    m_camera.AddLocal(movement);
 
     // Rotation
     {
@@ -196,7 +209,6 @@ void Application::RenderScene()
         int numIndices = (int) model->m_mesh->Count();
         glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
     }
-
 }
 
 void Application::RenderGui()
@@ -210,12 +222,12 @@ void Application::RenderGui()
     ImGui::Begin("Hello, world!");
     float frameRate = ImGui::GetIO().Framerate;
     ImGui::Text(
-            "Application average %.3f ms/frame (%.1f FPS)",
-            1000.0f /
-            frameRate, frameRate);
+        "Application average %.3f ms/frame (%.1f FPS)",
+        1000.0f /
+        frameRate, frameRate);
     ImGui::Text(
-            "MS This Frame: %.3fms",
-            m_deltaTime * 1000);
+        "MS This Frame: %.3fms",
+        m_deltaTime * 1000);
 
     ImGui::Checkbox("Cursor disabled", &m_inputs.cursorLocked);
     if (m_inputs.cursorLocked)
@@ -226,7 +238,6 @@ void Application::RenderGui()
         int mask = ~ImGuiConfigFlags_NoMouse;
         ImGui::GetIO().ConfigFlags &= mask;
     }
-
 
     ImGui::TextColored(headerColor, "Light");
     ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
@@ -239,9 +250,101 @@ void Application::RenderGui()
     ImGui::TextColored(headerColor, "Camera");
     ImGui::DragFloat3("Cam_Position", &m_camera.Position()[0]);
     ImGui::DragFloat3("Cam_Rotation", &m_camera.Rotation()[0]);
+    ImGui::DragFloat("Movement Speed", &m_moveSpeed, 5, 0, 100);
+    ImGui::DragFloat("Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
+
+    if (ImGui::Button("Save"))
+    {
+        SaveRuntimeVariables();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Load"))
+    {
+        LoadRuntimeVariables();
+    }
 
     ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Application::LoadRuntimeVariables()
+{
+    using namespace rapidjson;
+
+
+    auto safeGetFloat = [&](Value &v, const char *name, float defaultValue)
+    {
+        if (v.HasMember(name) && v[name].IsFloat())
+        {
+            return v[name].GetFloat();
+        } else
+        {
+            return defaultValue;
+        }
+    };
+
+    auto readVec3 = [&](const char *name)
+    {
+        if (!m_runtimeVariables.HasMember(name))
+        {
+            return glm::vec3(0, 0, 0);
+        }
+
+        glm::vec3 v{};
+        v.x = safeGetFloat(m_runtimeVariables[name], "x", 0);
+        v.y = safeGetFloat(m_runtimeVariables[name], "y", 0);
+        v.z = safeGetFloat(m_runtimeVariables[name], "z", 0);
+        return v;
+    };
+    m_moveSpeed = safeGetFloat(m_runtimeVariables, "movement_speed", m_moveSpeed);
+    m_moveSpeedSlowMultiplier = safeGetFloat(m_runtimeVariables, "movement_speed_slow_multiplier", m_moveSpeedSlowMultiplier);
+    m_camera.Position() = readVec3("camera_position");
+    m_camera.Rotation() = readVec3("camera_rotation");
+}
+
+void Application::SaveRuntimeVariables()
+{
+    using namespace rapidjson;
+
+    auto safeSetFloat = [&](Value &v, const char *name, float value)
+    {
+        if(v.HasMember(name))
+        {
+            v[name] = value;
+        }
+        else
+        {
+            Value key(name, m_runtimeVariables.GetAllocator());
+            Value val (value);
+            v.AddMember(key, value, m_runtimeVariables.GetAllocator());
+        }
+    };
+
+    auto setVec3 = [&](Value &v, const char *name, glm::vec3 vec)
+    {
+        if(!m_runtimeVariables.HasMember(name))
+        {
+            Value key(name, m_runtimeVariables.GetAllocator());
+            Value val;
+            v.AddMember(key, val, m_runtimeVariables.GetAllocator());
+        }
+
+        safeSetFloat(v[name], "x", vec.x);
+        safeSetFloat(v[name], "y", vec.y);
+        safeSetFloat(v[name], "z", vec.z);
+    };
+
+    safeSetFloat(m_runtimeVariables, "movement_speed", m_moveSpeed);
+    safeSetFloat(m_runtimeVariables, "movement_speed_slow_multiplier", m_moveSpeedSlowMultiplier);
+
+    setVec3(m_runtimeVariables, "camera_position", m_camera.Position());
+    setVec3(m_runtimeVariables, "camera_rotation", m_camera.Rotation());
+
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    m_runtimeVariables.Accept(writer);
+    m_runtimeFile.Write(buffer.GetString());
 }

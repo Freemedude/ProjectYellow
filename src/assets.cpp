@@ -17,7 +17,7 @@ Assets::Assets()
     m_instance = this;
 }
 
-void Assets::Init(const std::string &assetDirName)
+void Assets::Init(const char *assetDirName)
 {
     m_assetsPath = GetAssetPath(assetDirName);
 }
@@ -27,22 +27,26 @@ Assets &Assets::Instance()
     return *m_instance;
 }
 
-Image Assets::GetImage(const std::string &path, int channels)
+Image Assets::GetImage(const char *path, int channels)
 {
     Assets &instance = Instance();
     File file = instance.GetFile(path);
 
     Image result = result.FromBytes((unsigned char *) file.Text(), (int)file.Size(), channels);
+    file.Free();
     return result;
 }
 
-File Assets::GetFile(const std::string &path)
+File Assets::GetFile(const char *path)
 {
-    std::filesystem::path fullPath = m_assetsPath / path;
-    return {fullPath.string().c_str()};
+
+    Assets &instance = Instance();
+    std::filesystem::path fullPath = instance.m_assetsPath / path;
+
+    return File(fullPath.string().c_str());
 }
 
-std::filesystem::path Assets::GetAssetPath(const std::string &assetDirName)
+std::filesystem::path Assets::GetAssetPath(const char *assetDirName)
 {
     // Get current directory
     std::filesystem::path currentDir = std::filesystem::current_path();

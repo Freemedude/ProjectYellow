@@ -115,9 +115,6 @@ void Window::CursorLocked(bool locked)
 
 void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    (void)scancode;
-    (void)mods;
-
     auto changeIfNotRepeat = [](bool &value, int action)
     {
         if(action == GLFW_PRESS)
@@ -129,8 +126,11 @@ void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, i
             value = false;
         }
     };
+    UNUSED(scancode);
 
     Inputs &inputs = InputsFromUserPointer(window);
+    bool shiftPressed = (mods & GLFW_MOD_SHIFT) != 0;
+    inputs.moveSlow = shiftPressed;
 
     switch (key)
     {

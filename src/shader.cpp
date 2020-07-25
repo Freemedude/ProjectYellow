@@ -50,5 +50,6 @@ void Shader::Compile()
         std::cout << buffer << std::endl;
         throw std::runtime_error(buffer);
     }
+    source.Free();
 }
 

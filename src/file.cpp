@@ -9,11 +9,17 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
-
+#include <iostream>
 
 File::File(const char *path)
 {
-    std::ifstream file(path,  std::ios::binary |std::ios::in);
+    Read(path);
+}
+
+void File::Read(const char *path)
+{
+    m_path = path;
+    std::ifstream file(path, std::ios::binary | std::ios::in);
 
     if (!file.good())
     {
@@ -22,9 +28,9 @@ File::File(const char *path)
         throw std::invalid_argument(errorStream.str());
     }
 
-    file.seekg (0, std::ios::end);
+    file.seekg(0, std::ios::end);
     m_size = file.tellg();
-    file.seekg (0, std::ios::beg);
+    file.seekg(0, std::ios::beg);
 
     m_text = new char[m_size + 1];
     m_text[m_size] = 0;
@@ -32,6 +38,24 @@ File::File(const char *path)
 }
 
 File::~File()
+{
+    std::cout << "Destroyed file " << m_path << std::endl;
+}
+
+void File::Write(const char *bytes)
+{
+    std::ofstream file(m_path, std::ios::binary | std::ios::out);
+    if (!file.good())
+    {
+        std::stringstream errorStream;
+        errorStream << "Could not open file: " << m_path << "!";
+        throw std::invalid_argument(errorStream.str());
+    }
+
+    file << bytes;
+}
+
+void File::Free()
 {
     delete[] m_text;
 }
@@ -45,3 +69,4 @@ char *File::Text()
 {
     return m_text;
 }
+

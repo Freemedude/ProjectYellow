@@ -17,9 +17,10 @@ class Texture
 public:
     Image m_image;
     uint m_id = 0;
+
     Texture() = default;
 
-    void Init(const std::string &name, const std::string &imagePath, int channels);
+    void Init(const char *name, const char *imagePath, int channels);
 };
 
 

@@ -23,16 +23,16 @@ private:
 public:
     Assets();
 
-    void Init(const std::string &assetDirName);
+    void Init(const char *assetDirName);
 
     static Assets &Instance();
 
-    File GetFile(const std::string &relativePath);
+    static File GetFile(const char *relativePath);
 
-    static Image GetImage(const std::string &path, int channels);
+    static Image GetImage(const char *, int channels);
 
 private:
-    std::filesystem::path GetAssetPath(const std::string &assetDirName);
+    std::filesystem::path GetAssetPath(const char *assetDirName);
 };
 
 

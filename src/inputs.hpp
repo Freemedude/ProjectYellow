@@ -21,6 +21,7 @@ struct Inputs
     bool right;
     bool up;
     bool down;
+    bool moveSlow;
 
     glm::vec2 mousePos;
     glm::vec2 lastMousePos;

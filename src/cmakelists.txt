@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 set(sources main.cpp timers.cpp timers.h application.cpp application.hpp shader.cpp shader.hpp raster_pipeline.cpp raster_pipeline.hpp assets.cpp assets.hpp gpu_buffer.cpp gpu_buffer.hpp mesh.cpp mesh.hpp opengl_helpers.hpp window.cpp window.hpp inputs.hpp transform.cpp transform.hpp camera.cpp camera.hpp scene.cpp scene.hpp model.cpp model.hpp material.cpp material.hpp file.cpp file.hpp image.cpp image.hpp texture.cpp texture.hpp utility.hpp)
 
 add_executable(Default ${sources})
-target_link_libraries(Default glad opengl32 glm glfw ImGui StbImage)
+target_link_libraries(Default glad opengl32 glm glfw ImGui StbImage RapidJson)
 target_include_directories(Default PUBLIC .)
 target_compile_features(Default PRIVATE cxx_std_17)
 target_compile_options(Default PRIVATE /W4  /WX /Za)

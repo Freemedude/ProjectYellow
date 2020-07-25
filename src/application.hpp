@@ -20,6 +20,8 @@
 #include "camera.hpp"
 #include "scene.hpp"
 
+#include "rapidjson/document.h"
+
 class Application
 {
 private:
@@ -30,6 +32,7 @@ private:
     Scene m_scene{};
 
     float m_moveSpeed = 10.0f;
+    float m_moveSpeedSlowMultiplier = 0.5f;
     float m_mouseSensitivity = 0.05f;
 
     glm::vec3 m_ambientColor{0.9f, 0.9f, 0.1f};
@@ -46,14 +49,19 @@ private:
     double m_frameEnd = 0;
 
     Camera m_camera{};
+    rapidjson::Document m_runtimeVariables;
+    File m_runtimeFile;
 
 
 public:
     Application() = default;
-
     ~Application();
 
     void Init();
+
+    void LoadRuntimeVariables();
+
+    void SaveRuntimeVariables();
 
     void StartFrame();
 
