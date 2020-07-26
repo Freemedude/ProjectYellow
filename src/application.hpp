@@ -46,9 +46,14 @@ private:
     Inputs m_inputs{};
     Scene m_scene{};
 
+    // Camera settings
     float m_moveSpeed = 10.0f;
     float m_moveSpeedSlowMultiplier = 0.5f;
     float m_mouseSensitivity = 0.05f;
+
+    float m_fov = 45.0f;
+    float m_near = 0.1f;
+    float m_far = 1000.0f;
 
     glm::vec3 m_ambientColor{0.9f, 0.9f, 0.1f};
     float m_ambientIntensity = 0.1f;
@@ -63,12 +68,9 @@ private:
     double m_frameStart = 0;
     double m_frameEnd = 0;
 
-    DebugWindows m_debugWindows {};
-
     Camera m_camera{};
     rapidjson::Document m_runtimeVariables;
     File m_runtimeFile;
-
 
 public:
     Application() = default;
@@ -90,10 +92,11 @@ public:
 
     bool Done();
 
+    Inputs &GetInputs();
+
+    void Resize(int width, int height);
+
 private:
-
-
-    void InitOpenGL();
 
     void InitDearImGui();
 
@@ -103,7 +106,7 @@ private:
 
     void RenderScene();
 
-    float ClampDegrees(float deg);
+    static float ClampDegrees(float deg);
 };
 
 

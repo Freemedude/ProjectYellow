@@ -23,12 +23,7 @@ Application::~Application()
 
 void Application::Init()
 {
-    m_window.Init("Project Yellow", 1280, 720, &m_inputs);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glDepthRange(-1, 1);
-
+    m_window.Init("Project Yellow", 1280, 720, this);
 
     InitDearImGui();
     m_assets.Init("assets");
@@ -39,8 +34,8 @@ void Application::Init()
 
     glm::ivec2 frameBufferSize = m_window.FrameBufferSize();
     float aspectRatio = (float) frameBufferSize.x / (float) frameBufferSize.y;
-    float fov = glm::radians(45.0f);
-    m_camera.InitPerspective(fov, aspectRatio, 0.1f, 1000.0f);
+    std::cout << aspectRatio << std::endl;
+    m_camera.InitPerspective(glm::radians(m_fov), aspectRatio, m_near, m_far);
 
 
     m_runtimeFile = Assets::GetFile("runtime.json");
@@ -91,8 +86,6 @@ void Application::StartFrame()
 {
     m_frameStart = glfwGetTime();
 
-    HandleInputs();
-
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -106,6 +99,7 @@ void Application::EndFrame()
     m_window.SwapBuffers();
     m_frameEnd = glfwGetTime();
     m_deltaTime = (float) glm::max(m_frameEnd - m_frameStart, 0.0);
+    HandleInputs();
 }
 
 void Application::HandleInputs()
@@ -202,7 +196,6 @@ void Application::RenderScene()
         pipeline->SetFloat("u_ambientIntensity", m_ambientIntensity);
         pipeline->SetVector3("u_ambientColor", m_ambientColor);
         pipeline->SetVector3("u_cameraPosition", m_camera.Position());
-
 
         model->m_mesh->Bind();
 
@@ -405,4 +398,18 @@ void Application::SaveRuntimeVariables()
     Writer<StringBuffer> writer(buffer);
     m_runtimeVariables.Accept(writer);
     m_runtimeFile.Write(buffer.GetString());
+}
+
+Inputs &Application::GetInputs()
+{
+    return m_inputs;
+}
+
+void Application::Resize(int width, int height)
+{
+    glViewport(0, 0, width, height);
+    float aspectRatio = (float) width / (float) height;
+    std::cout << aspectRatio << std::endl;
+    m_camera.InitPerspective(glm::radians(m_fov), aspectRatio, m_near, m_far);
+    Update();
 }

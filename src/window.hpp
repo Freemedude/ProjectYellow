@@ -19,6 +19,7 @@
 #include "integers.h"
 #include "inputs.hpp"
 
+class Application;
 
 class Window
 {
@@ -30,11 +31,12 @@ public:
 
     ~Window();
 
-    void Init(const std::string &name, int width, int height, Inputs *inputs);
+    void Init(const std::string &name, int width, int height, Application *app);
 
     bool ShouldClose() const;
 
     void SwapBuffers();
+
 
     glm::ivec2 FrameBufferSize();
 
@@ -42,20 +44,26 @@ public:
 
     GLFWwindow *GlfwWindow();
 
-    void GetInputs();
+    static void GetInputs();
 
     void Close();
 
 
 private:
+    void SetGLFWCallbacks();
 
     // Callbacks
-    static Inputs &InputsFromUserPointer(GLFWwindow *window);
+    static Application *ApplicationFromUserPointer(GLFWwindow *window);
+
     static void GlfwCb_Error(int error, const char *description);
-    static void GlfwCb_Key(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void GlfwCb_Cursor(GLFWwindow* window, double xpos, double ypos);
 
+    static void KeyCB(GLFWwindow *window, int key, int scancode, int action, int mods);
 
+    static void CursorMoveCB(GLFWwindow *window, double xpos, double ypos);
+
+    static void ResizeCB(GLFWwindow* window, int width, int height);
+
+    float AspectRatio();
 };
 
 

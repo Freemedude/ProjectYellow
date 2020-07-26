@@ -9,9 +9,12 @@
 #include <iostream>
 #include <string>
 
-#include "utility.hpp"
+#include <glad/glad.h>
 
-void GLAPIENTRY GlCb_Message(
+#include "utility.hpp"
+#include "application.hpp"
+
+void GLAPIENTRY OpengGLMessageCB(
     GLenum source,
     GLenum type,
     GLuint id,
@@ -25,7 +28,7 @@ Window::~Window()
     glfwTerminate();
 }
 
-void Window::Init(const std::string &name, int width, int height, Inputs *inputs)
+void Window::Init(const std::string &name, int width, int height, Application *app)
 {
     glfwSetErrorCallback(GlfwCb_Error);
 
@@ -37,22 +40,22 @@ void Window::Init(const std::string &name, int width, int height, Inputs *inputs
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     m_window = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
+
     if (!m_window)
     {
         glfwTerminate();
         throw std::runtime_error("Failed to created GLFW window");
     }
 
-    glfwSetKeyCallback(m_window, GlfwCb_Key);
-    glfwSetCursorPosCallback(m_window, GlfwCb_Cursor);
-    glfwSetWindowUserPointer(m_window, inputs);
+    SetGLFWCallbacks();
+    glfwSetWindowUserPointer(m_window, app);
     glfwMakeContextCurrent(m_window);
 
     gladLoadGL();
 
     // During init, enable debug output
     glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(GlCb_Message, nullptr);
+    glDebugMessageCallback(OpengGLMessageCB, nullptr);
 
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
@@ -83,8 +86,13 @@ glm::ivec2 Window::FrameBufferSize()
 
     glfwGetFramebufferSize(m_window, &width, &height);
 
-
     return {width, height};
+}
+
+float Window::AspectRatio()
+{
+    glm::ivec2 size =  FrameBufferSize();
+    return (float)size.x / (float)size.y;
 }
 
 GLFWwindow *Window::GlfwWindow()
@@ -95,7 +103,6 @@ GLFWwindow *Window::GlfwWindow()
 void Window::GetInputs()
 {
     glfwPollEvents();
-
 }
 
 void Window::Close()
@@ -111,9 +118,7 @@ void Window::CursorLocked(bool locked)
         locked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
-
-
-void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, int mods)
+void Window::KeyCB(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     auto changeIfNotRepeat = [](bool &value, int action)
     {
@@ -128,8 +133,10 @@ void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, i
     };
     UNUSED(scancode);
 
-    Inputs &inputs = InputsFromUserPointer(window);
+    Inputs &inputs = ApplicationFromUserPointer(window)->GetInputs();
+
     bool shiftPressed = (mods & GLFW_MOD_SHIFT) != 0;
+
     inputs.moveSlow = shiftPressed;
 
     switch (key)
@@ -161,29 +168,43 @@ void Window::GlfwCb_Key(GLFWwindow *window, int key, int scancode, int action, i
         case GLFW_KEY_F:
             changeIfNotRepeat(inputs.down, action);
             break;
+        default:
+            break;
     }
 }
 
-void Window::GlfwCb_Cursor(GLFWwindow *window, double xpos, double ypos)
+void Window::CursorMoveCB(GLFWwindow *window, double xpos, double ypos)
 {
-    Inputs &inputs = InputsFromUserPointer(window);
+    Inputs &inputs = ApplicationFromUserPointer(window)->GetInputs();
     inputs.mousePos = {xpos, ypos};
 
     if(inputs.invalidLastCursor)
     {
         inputs.lastMousePos = inputs.mousePos;
     }
-
 }
 
-Inputs &Window::InputsFromUserPointer(GLFWwindow *window)
+Application *Window::ApplicationFromUserPointer(GLFWwindow *window)
 {
     void *userPointer = glfwGetWindowUserPointer(window);
-    Inputs &inputs = *(Inputs *) userPointer;
-    return inputs;
+    Application *app = (Application *) userPointer;
+    return app;
 }
 
-void GLAPIENTRY GlCb_Message(
+void Window::SetGLFWCallbacks()
+{
+    glfwSetKeyCallback(m_window, KeyCB);
+    glfwSetCursorPosCallback(m_window, CursorMoveCB);
+    glfwSetFramebufferSizeCallback(m_window, ResizeCB);
+}
+
+void Window::ResizeCB(GLFWwindow *window, int width, int height)
+{
+    Application *app = ApplicationFromUserPointer(window);
+    app->Resize(width, height);
+}
+
+void GLAPIENTRY OpengGLMessageCB(
     GLenum source,
     GLenum type,
     GLuint id,

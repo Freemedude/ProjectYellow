@@ -88,7 +88,7 @@ void Scene::TestScene()
     std::uniform_real_distribution<float> rotationDist(-20.0f, 20.0);
     std::uniform_real_distribution<float> scaleDist(0.1f, 1.5f);
 
-    int numCubes = 100;
+    int numCubes = 1;
 
     for (int i = 0; i < numCubes; i++)
     {
