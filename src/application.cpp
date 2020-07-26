@@ -213,13 +213,13 @@ void Application::RenderScene()
 
 void Application::RenderGui()
 {
-    ImVec4 headerColor = {1, 0, 0, 1};
+    const int indentPerLevel = 20;
 
     // Sanitize degrees for display
     m_lightPitch = ClampDegrees(m_lightPitch);
     m_lightYaw = ClampDegrees(m_lightYaw);
 
-    ImGui::Begin("Hello, world!");
+    ImGui::Begin("Runtime Settings!");
     float frameRate = ImGui::GetIO().Framerate;
     ImGui::Text(
         "Application average %.3f ms/frame (%.1f FPS)",
@@ -239,19 +239,23 @@ void Application::RenderGui()
         ImGui::GetIO().ConfigFlags &= mask;
     }
 
-    ImGui::TextColored(headerColor, "Light");
-    ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
-    ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.1f, 0, 1);
-    ImGui::SliderFloat("Light Pitch", &m_lightPitch, -180, 180);
-    ImGui::SliderFloat("Light Yaw", &m_lightYaw, -180, 180);
-    ImGui::SliderFloat("Light Pitch Speed", &m_lightPitchSpeed, -180, 180);
-    ImGui::SliderFloat("Light Yaw Speed", &m_lightYawSpeed, -180, 180);
+    if (ImGui::CollapsingHeader("Lighting"))
+    {
+        ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
+        ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.1f, 0, 1);
+        ImGui::SliderFloat("Light Pitch", &m_lightPitch, -180, 180);
+        ImGui::SliderFloat("Light Yaw", &m_lightYaw, -180, 180);
+        ImGui::SliderFloat("Light Pitch Speed", &m_lightPitchSpeed, -180, 180);
+        ImGui::SliderFloat("Light Yaw Speed", &m_lightYawSpeed, -180, 180);
+    }
 
-    ImGui::TextColored(headerColor, "Camera");
-    ImGui::DragFloat3("Cam_Position", &m_camera.Position()[0]);
-    ImGui::DragFloat3("Cam_Rotation", &m_camera.Rotation()[0]);
-    ImGui::DragFloat("Movement Speed", &m_moveSpeed, 5, 0, 100);
-    ImGui::DragFloat("Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
+    if (ImGui::CollapsingHeader("Camera Controls"))
+    {
+        ImGui::DragFloat3("Cam_Position", &m_camera.Position()[0]);
+        ImGui::DragFloat3("Cam_Rotation", &m_camera.Rotation()[0]);
+        ImGui::DragFloat("Movement Speed", &m_moveSpeed, 5, 0, 100);
+        ImGui::DragFloat("Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
+    }
 
     if (ImGui::Button("Save"))
     {
@@ -263,57 +267,56 @@ void Application::RenderGui()
         LoadRuntimeVariables();
     }
 
-    // scene
+    if (ImGui::CollapsingHeader("Scene"))
     {
-        const int indentPerLevel = 20;
-        m_debugWindows.scene.show = true;
-        if (ImGui::CollapsingHeader("Scene"))
+        ImGui::Indent(indentPerLevel);
+        // Meshes
+        if (ImGui::CollapsingHeader("Models"))
         {
             ImGui::Indent(indentPerLevel);
-            // Meshes
-            if (ImGui::CollapsingHeader("Models"))
+            for (int i = 0; i < m_scene.m_models.size(); i++)
             {
-                ImGui::Indent(indentPerLevel);
-                for (int i = 0; i < m_scene.m_models.size(); i++)
-                {
-                    ImGui::PushID(i);
-                    auto model = m_scene.m_models[i];
-                    ImGui::LabelText("Name", "%s", model->m_name.c_str());
-                    ImGui::LabelText("MeshID", "%d", model->m_mesh->m_id);
-                    ImGui::LabelText("Material", "%s", model->m_material->m_name.c_str());
-                    ImGui::DragFloat3("Position", &model->Position()[0]);
-                    ImGui::DragFloat3("Rotation", &model->Rotation()[0]);
-                    ImGui::DragFloat3("Scale", &model->Scale()[0]);
-                    ImGui::PopID();
-                }
+                ImGui::PushID(i);
+                auto model = m_scene.m_models[i];
+                ImGui::LabelText("Name", "%s", model->m_name.c_str());
+                ImGui::LabelText("MeshID", "%d", model->m_mesh->m_id);
+                ImGui::LabelText("Material", "%s", model->m_material->m_name.c_str());
+                ImGui::DragFloat3("Position", &model->Position()[0]);
+                ImGui::DragFloat3("Rotation", &model->Rotation()[0]);
+                ImGui::DragFloat3("Scale", &model->Scale()[0]);
+                ImGui::PopID();
             }
-            // Materials
-            if (ImGui::CollapsingHeader("Materials"))
+        }
+        // Materials
+        if (ImGui::CollapsingHeader("Materials"))
+        {
+            ImGui::Indent(indentPerLevel);
+            for (int i = 0; i < m_scene.m_materials.size(); i++)
             {
-                ImGui::Indent(indentPerLevel);
-                for (int i = 0; i < m_scene.m_materials.size(); i++)
-                {
-                    ImGui::PushID(i);
-                    auto mat = m_scene.m_materials[i];
-                    ImGui::LabelText("Id", "%s",  mat->m_name.c_str());
-                    ImGui::LabelText("Texture ID", "%d",  mat->m_texture->m_id);
-                    ImGui::DragFloat4("Color", &mat->m_color[0], 0.05f, 0, 1);
-                    ImGui::PopID();
-                }
+                ImGui::PushID(i);
+                auto mat = m_scene.m_materials[i];
+                ImGui::LabelText("Id", "%s", mat->m_name.c_str());
+                ImGui::LabelText("Texture ID", "%d", mat->m_texture->m_id);
+                ImGui::DragFloat4("Color", &mat->m_color[0], 0.05f, 0, 1);
+                ImGui::PopID();
             }
+        }
 
-            // Textures
-            if (ImGui::CollapsingHeader("Textures"))
+        // Textures
+        if (ImGui::CollapsingHeader("Textures"))
+        {
+            for (int i = 0; i < m_scene.m_textures.size(); i++)
             {
-                ImGui::Indent(indentPerLevel);
-                for (int i = 0; i < m_scene.m_textures.size(); i++)
-                {
-                    ImGui::PushID(i);
-                    auto tex = m_scene.m_textures[i];
-                    ImGui::LabelText("Name", "%s", tex->m_name.c_str());
-                    ImGui::LabelText("Id", "%d", tex->m_id);
-                    ImGui::PopID();
-                }
+                ImGui::PushID(i);
+                auto tex = m_scene.m_textures[i];
+                ImGui::LabelText("Name", "%s", tex->m_name.c_str());
+                ImGui::LabelText("Id", "%d", tex->m_id);
+                ImGui::Image(
+                    (void *) (u64) tex->m_id,
+                    ImVec2(128.0f, 128.0f),
+                    ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+                ImGui::PopID();
+
             }
         }
     }
