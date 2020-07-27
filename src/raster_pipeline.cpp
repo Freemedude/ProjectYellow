@@ -24,17 +24,40 @@ void RasterPipeline::Use() const
 
 void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
 {
-    m_vShader.Init(vShaderPath, ShaderType::Vertex);
-    m_fShader.Init(fShaderPath, ShaderType::Fragment);
+    if (!m_vShader.Init(vShaderPath, ShaderType::Vertex))
+    {
+        std::string error = m_vShader.GetCompileError();
+
+        std::cerr << error << std::endl;
+        throw std::runtime_error(error);
+    }
+    if (!m_fShader.Init(fShaderPath, ShaderType::Fragment))
+    {
+        std::string error = m_fShader.GetCompileError();
+
+        std::cerr << error << std::endl;
+        throw std::runtime_error(error);
+    }
 
     m_id = glCreateProgram();
     Link();
 }
 
-void RasterPipeline::Link()
+void RasterPipeline::Link() const
 {
-    glAttachShader(m_id, m_vShader.Id());
-    glAttachShader(m_id, m_fShader.Id());
+    const int max = 2;
+    uint attachedShaders[max];
+
+    int count;
+    glGetAttachedShaders(m_id, max, &count, attachedShaders);
+
+    for (int i = 0; i < count; ++i)
+    {
+        glDetachShader(m_id, attachedShaders[i]);
+    }
+
+    glAttachShader(m_id, m_vShader.m_id);
+    glAttachShader(m_id, m_fShader.m_id);
     glLinkProgram(m_id);
 
     int success = false;
@@ -42,20 +65,13 @@ void RasterPipeline::Link()
     if (!success)
     {
         char buffer[512];
-        glGetProgramInfoLog(m_id, 512, NULL, buffer);
+        glGetProgramInfoLog(m_id, 512, nullptr, buffer);
         std::cout << buffer << std::endl;
         throw std::runtime_error(buffer);
     }
 }
 
-void RasterPipeline::Reload()
-{
-    m_vShader.Compile();
-    m_fShader.Compile();
-    Link();
-}
-
-int RasterPipeline::GetLocation(const std::string &name)
+int RasterPipeline::GetLocation(const std::string &name) const
 {
     int location = glGetUniformLocation(m_id, name.c_str());
     return location;

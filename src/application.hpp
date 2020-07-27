@@ -22,26 +22,16 @@
 
 #include "rapidjson/document.h"
 
-struct DebugSceneWindow
+struct DebugSettings
 {
-    bool show;
-    bool models;
-    bool meshes;
-    bool materials;
-    bool textures;
-    bool pipelines;
-};
-
-struct DebugWindows
-{
-     DebugSceneWindow scene;
+    std::vector<Shader*> shaderDialogs{};
 };
 
 class Application
 {
 private:
     Window m_window{};
-
+    DebugSettings m_debugSettings{};
     Assets m_assets{};
     Inputs m_inputs{};
     Scene m_scene{};

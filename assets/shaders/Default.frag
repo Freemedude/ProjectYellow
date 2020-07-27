@@ -1,7 +1,5 @@
 ﻿#version 450
 
-
-
 uniform vec4 u_color;
 uniform vec3 u_lightDirection;
 uniform vec3 u_ambientColor;
@@ -32,6 +30,6 @@ void main()
     float attenuation = dot(normal, light);
     vec3 color = ambient + attenuation * u_color.xyz;
 
-//    FragColor = vec4(color, 1);
     FragColor = texture(ourTexture, v_uv) *  vec4(color, 1);
+    //FragColor = vec4(1, 0, 0, 1);
 }

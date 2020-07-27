@@ -21,19 +21,17 @@ enum class ShaderType
 class Shader
 {
 public:
-    Shader() = default;
-    ~Shader();
-
-    void Init(const char *path, ShaderType type);
-
-    uint Id() const;
-
-    void Compile();
-
-private:
     const char *m_path;
     ShaderType m_type;
     uint m_id;
+
+    Shader() = default;
+    ~Shader();
+
+    bool Init(const char *path, ShaderType type);
+
+    bool Compile();
+    std::string GetCompileError() const;
 };
 
 #endif //PROJECT_YELLOW_SHADER_HPP

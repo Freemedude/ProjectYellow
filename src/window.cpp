@@ -60,6 +60,10 @@ void Window::Init(const std::string &name, int width, int height, Application *a
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
     glCullFace(GL_BACK);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthRange(-1, 1);
+    glDepthFunc(GL_LESS);
 }
 
 void Window::GlfwCb_Error(int error, const char *description)

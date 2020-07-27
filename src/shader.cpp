@@ -16,26 +16,21 @@ Shader::~Shader()
     glDeleteShader(m_id);
 }
 
-void Shader::Init(const char *path, ShaderType type)
+bool Shader::Init(const char *path, ShaderType type)
 {
     m_path = path;
-    m_id = glCreateShader((uint)type);
+    m_id = glCreateShader((uint) type);
     m_type = type;
 
-    Compile();
+    return Compile();
 }
 
-uint Shader::Id() const
-{
-    return m_id;
-}
-
-void Shader::Compile()
+bool Shader::Compile()
 {
     // Get the text
     File source = Assets::Instance().GetFile(m_path);
 
-    char* text = source.Text();
+    char *text = source.Text();
 
     glShaderSource(m_id, 1, &text, nullptr);
 
@@ -44,12 +39,17 @@ void Shader::Compile()
 
     int success = false;
     glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
-    if(!success) {
-        char buffer[512];
-        glGetShaderInfoLog(m_id, 512, NULL, buffer);
-        std::cout << buffer << std::endl;
-        throw std::runtime_error(buffer);
-    }
+
     source.Free();
+    return success == GL_TRUE;
 }
 
+std::string Shader::GetCompileError() const
+{
+    int logLength;
+    glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &logLength);
+    std::string result;
+    result.resize(logLength);
+    glGetShaderInfoLog(m_id, logLength, nullptr, result.data());
+    return result;
+}

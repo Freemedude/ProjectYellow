@@ -48,6 +48,7 @@ public:
 
     void Close();
 
+    float AspectRatio();
 
 private:
     void SetGLFWCallbacks();
@@ -63,7 +64,6 @@ private:
 
     static void ResizeCB(GLFWwindow* window, int width, int height);
 
-    float AspectRatio();
 };
 
 

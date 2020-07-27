@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <set>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -32,9 +33,7 @@ void Application::Init()
 
     m_scene.TestScene();
 
-    glm::ivec2 frameBufferSize = m_window.FrameBufferSize();
-    float aspectRatio = (float) frameBufferSize.x / (float) frameBufferSize.y;
-    std::cout << aspectRatio << std::endl;
+    float aspectRatio = m_window.AspectRatio();
     m_camera.InitPerspective(glm::radians(m_fov), aspectRatio, m_near, m_far);
 
 
@@ -206,13 +205,53 @@ void Application::RenderScene()
 
 void Application::RenderGui()
 {
+    for (int i = 0; i < m_debugSettings.shaderDialogs.size(); i++)
+    {
+        Shader *shader = m_debugSettings.shaderDialogs[i];
+        bool open = true;
+        if (ImGui::Begin(shader->m_path, &open))
+        {
+            ImGui::Text("%s", shader->GetCompileError().c_str());
+        } else
+        {
+            auto index = std::find(
+                m_debugSettings.shaderDialogs.begin(),
+                m_debugSettings.shaderDialogs.end(),
+                shader);
+            if (index != m_debugSettings.shaderDialogs.end())
+            {
+                m_debugSettings.shaderDialogs.erase(index);
+            } else
+            {
+                throw std::runtime_error("Tried to remove non-existent shader");
+            }
+        }
+        ImGui::End();
+    }
     const int indentPerLevel = 20;
+    auto displayShader = [&](Shader &shader) -> bool
+    {
+        ImGui::LabelText("Path", "%s", shader.m_path);
+        ImGui::LabelText("Id", "%d", shader.m_id);
+        if (ImGui::Button("Recompile"))
+        {
+            if (!shader.Compile())
+            {
+                m_debugSettings.shaderDialogs.push_back(&shader);
+            } else
+            {
+                return true;
+            }
+        }
+        return false;
+    };
 
     // Sanitize degrees for display
     m_lightPitch = ClampDegrees(m_lightPitch);
     m_lightYaw = ClampDegrees(m_lightYaw);
 
     ImGui::Begin("Runtime Settings!");
+
     float frameRate = ImGui::GetIO().Framerate;
     ImGui::Text(
         "Application average %.3f ms/frame (%.1f FPS)",
@@ -222,6 +261,7 @@ void Application::RenderGui()
         "MS This Frame: %.3fms",
         m_deltaTime * 1000);
 
+
     ImGui::Checkbox("Cursor disabled", &m_inputs.cursorLocked);
     if (m_inputs.cursorLocked)
     {
@@ -230,6 +270,19 @@ void Application::RenderGui()
     {
         int mask = ~ImGuiConfigFlags_NoMouse;
         ImGui::GetIO().ConfigFlags &= mask;
+    }
+
+    // Save load
+    {
+        if (ImGui::Button("Save"))
+        {
+            SaveRuntimeVariables();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load"))
+        {
+            LoadRuntimeVariables();
+        }
     }
 
     if (ImGui::CollapsingHeader("Lighting"))
@@ -250,15 +303,6 @@ void Application::RenderGui()
         ImGui::DragFloat("Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
     }
 
-    if (ImGui::Button("Save"))
-    {
-        SaveRuntimeVariables();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Load"))
-    {
-        LoadRuntimeVariables();
-    }
 
     if (ImGui::CollapsingHeader("Scene"))
     {
@@ -280,6 +324,30 @@ void Application::RenderGui()
                 ImGui::PopID();
             }
         }
+
+        if (ImGui::CollapsingHeader("Shaders"))
+        {
+            // Pipelines
+            for (int i = 0; i < m_scene.m_pipelines.size(); ++i)
+            {
+                ImGui::PushID(i);
+                const auto &pipeline = m_scene.m_pipelines[i];
+
+                bool changed = false;
+                changed |= displayShader(pipeline->m_vShader);
+                ImGui::PushID(i + i);
+                changed |= displayShader(pipeline->m_fShader);
+
+                if (ImGui::Button("Link") || changed)
+                {
+                    pipeline->Link();
+                }
+
+                ImGui::PopID();
+                ImGui::PopID();
+            }
+        }
+
         // Materials
         if (ImGui::CollapsingHeader("Materials"))
         {
@@ -409,7 +477,6 @@ void Application::Resize(int width, int height)
 {
     glViewport(0, 0, width, height);
     float aspectRatio = (float) width / (float) height;
-    std::cout << aspectRatio << std::endl;
     m_camera.InitPerspective(glm::radians(m_fov), aspectRatio, m_near, m_far);
     Update();
 }
