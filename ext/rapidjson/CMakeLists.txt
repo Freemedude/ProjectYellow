@@ -1,5 +1,0 @@
-cmake_minimum_required(VERSION 3.15)
-
-add_library(RapidJson INTERFACE)
-target_include_directories(RapidJson INTERFACE include)
-target_compile_options(RapidJson INTERFACE -DRAPIDJSON_NOMEMBERITERATORCLASS)
