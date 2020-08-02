@@ -1,27 +1,5 @@
 cmake_minimum_required(VERSION 3.15) 
 
-# Load submodules
-
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    # Update submodules as needed
-    option(GIT_SUBMODULE "Check submodules during build" ON)
-    if(GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
-    endif()
-endif()
-
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/repo/CMakeLists.txt")
-    message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
-endif()
-
-
 
 add_subdirectory(glad)
 add_subdirectory(glm)
@@ -30,7 +8,32 @@ set(GLFW_BUILD_TESTS off)
 set(GLFW_BUILD_DOCS off)
 set(GLFW_BUILD_EXAMPLES off)
 add_subdirectory(glfw)
-add_subdirectory(imgui)
+
+add_library(ImGui
+        imgui/imgui.cpp
+        imgui/imgui.h
+        imgui/imgui_demo.cpp
+        imgui/imgui_draw.cpp
+        imgui/imgui_internal.h
+        imgui/imgui_widgets.cpp
+        imgui/imstb_rectpack.h
+        imgui/imstb_textedit.h
+        imgui/imstb_truetype.h
+        imgui/imconfig.h
+        imgui/examples/imgui_impl_glfw.h
+        imgui/examples/imgui_impl_glfw.cpp
+        imgui/examples/imgui_impl_opengl3.h
+        imgui/examples/imgui_impl_opengl3.cpp
+        )
+target_include_directories(ImGui PUBLIC .
+        imgui)
+target_link_libraries(ImGui glfw glad)
+
 add_subdirectory(stb_image)
+
+set(RAPIDJSON_BUILD_DOC off)
+set(RAPIDJSON_BUILD_EXAMPLES off)
+set(RAPIDJSON_BUILD_TESTS off)
+set(RAPIDJSON_BUILD_THIRDPARTY_GTEST off)
 
 add_subdirectory(rapidjson)
