@@ -208,10 +208,9 @@ void Application::RenderGui()
     for (int i = 0; i < m_debugSettings.shaderDialogs.size(); i++)
     {
         Shader *shader = m_debugSettings.shaderDialogs[i];
-        bool open = true;
-        if (ImGui::Begin(shader->m_path, &open))
+        if (ImGui::BeginPopup(shader->m_path))
         {
-            ImGui::Text("%s", shader->GetCompileError().c_str());
+            ImGui::Text("%s", shader->GetInfoMessage().c_str());
         } else
         {
             auto index = std::find(
@@ -226,8 +225,10 @@ void Application::RenderGui()
                 throw std::runtime_error("Tried to remove non-existent shader");
             }
         }
-        ImGui::End();
+        ImGui::EndPopup();
     }
+
+
     const int indentPerLevel = 20;
     auto displayShader = [&](Shader &shader) -> bool
     {

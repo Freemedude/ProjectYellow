@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
-#include <iostream>
 
 File::File(const char *path)
 {
@@ -39,7 +38,7 @@ void File::Read(const char *path)
 
 File::~File()
 {
-    std::cout << "Destroyed file " << m_path << std::endl;
+//    std::cout << "Destroyed file " << m_path << std::endl;
 }
 
 void File::Write(const char *bytes)

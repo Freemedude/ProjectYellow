@@ -30,8 +30,9 @@ public:
 
     bool Init(const char *path, ShaderType type);
 
-    bool Compile();
-    std::string GetCompileError() const;
+    bool Compile() const;
+    bool Valid() const;
+    std::string GetInfoMessage() const;
 };
 
 #endif //PROJECT_YELLOW_SHADER_HPP

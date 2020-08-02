@@ -20,7 +20,7 @@
 #include "camera.hpp"
 #include "scene.hpp"
 
-#include "rapidjson/document.h"
+#include "rapidjson_wrapper.hpp"
 
 struct DebugSettings
 {

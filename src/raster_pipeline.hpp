@@ -12,7 +12,6 @@
 
 #include "shader.hpp"
 
-
 class RasterPipeline
 {
 private:
@@ -28,15 +27,19 @@ public:
     void Init(const char *vShaderPath, const char* fShaderPath);
     void Use() const;
 
-    void SetMatrix4(const std::string &name, glm::mat4 mat);
+    int GetLocation(const std::string &name) const;
     void SetFloat(const std::string &name, float f);
     void SetVector3(const std::string &name, glm::vec3 vec);
     void SetVector4(const std::string &name, glm::vec4 vec);
+    void SetMatrix4(const std::string &name, glm::mat4 mat);
 
-    void Link() const;
+    bool Link() const;
+    bool Valid() const;
+    std::string GetInfoMessage();
 
+    void DetachAllShaders() const;
 private:
-    int GetLocation(const std::string &name) const;
+    const int m_maxShaders = 2;
 };
 
 

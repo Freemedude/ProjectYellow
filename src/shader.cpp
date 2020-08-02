@@ -25,10 +25,10 @@ bool Shader::Init(const char *path, ShaderType type)
     return Compile();
 }
 
-bool Shader::Compile()
+bool Shader::Compile() const
 {
     // Get the text
-    File source = Assets::Instance().GetFile(m_path);
+    File source = Assets::GetFile(m_path);
 
     char *text = source.Text();
 
@@ -36,20 +36,30 @@ bool Shader::Compile()
 
     // Compile it
     glCompileShader(m_id);
-
-    int success = false;
-    glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
-
     source.Free();
-    return success == GL_TRUE;
+
+    bool valid = Valid();
+
+    return valid;
 }
 
-std::string Shader::GetCompileError() const
+std::string Shader::GetInfoMessage() const
 {
+    if(Valid())
+    {
+        return "No messages";
+    }
     int logLength;
     glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &logLength);
     std::string result;
     result.resize(logLength);
     glGetShaderInfoLog(m_id, logLength, nullptr, result.data());
     return result;
+}
+
+bool Shader::Valid() const
+{
+    int success = false;
+    glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
+    return success;
 }

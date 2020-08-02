@@ -22,18 +22,19 @@ void RasterPipeline::Use() const
     glUseProgram(m_id);
 }
 
+
 void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
 {
     if (!m_vShader.Init(vShaderPath, ShaderType::Vertex))
     {
-        std::string error = m_vShader.GetCompileError();
+        std::string error = m_vShader.GetInfoMessage();
 
         std::cerr << error << std::endl;
         throw std::runtime_error(error);
     }
     if (!m_fShader.Init(fShaderPath, ShaderType::Fragment))
     {
-        std::string error = m_fShader.GetCompileError();
+        std::string error = m_fShader.GetInfoMessage();
 
         std::cerr << error << std::endl;
         throw std::runtime_error(error);
@@ -43,32 +44,50 @@ void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
     Link();
 }
 
-void RasterPipeline::Link() const
+bool RasterPipeline::Link() const
 {
-    const int max = 2;
-    uint attachedShaders[max];
 
-    int count;
-    glGetAttachedShaders(m_id, max, &count, attachedShaders);
-
-    for (int i = 0; i < count; ++i)
-    {
-        glDetachShader(m_id, attachedShaders[i]);
-    }
+    DetachAllShaders();
 
     glAttachShader(m_id, m_vShader.m_id);
     glAttachShader(m_id, m_fShader.m_id);
     glLinkProgram(m_id);
 
+    return Valid();
+}
+
+void RasterPipeline::DetachAllShaders() const
+{
+    int count;
+    uint attachedShaders[2];
+    glGetAttachedShaders(m_id, m_maxShaders, &count, attachedShaders);
+
+    for (int i = 0; i < count; ++i)
+    {
+        glDetachShader(m_id, attachedShaders[i]);
+    }
+}
+
+std::string RasterPipeline::GetInfoMessage()
+{
+    if (Valid())
+    {
+        return "No messages";
+    }
+
+    int logLength;
+    glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &logLength);
+    std::string result;
+    result.resize(logLength);
+    glGetProgramInfoLog(m_id, logLength, nullptr, result.data());
+    return result;
+}
+
+bool RasterPipeline::Valid() const
+{
     int success = false;
     glGetProgramiv(m_id, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        char buffer[512];
-        glGetProgramInfoLog(m_id, 512, nullptr, buffer);
-        std::cout << buffer << std::endl;
-        throw std::runtime_error(buffer);
-    }
+    return success;
 }
 
 int RasterPipeline::GetLocation(const std::string &name) const
