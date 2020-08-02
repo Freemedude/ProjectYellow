@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 
 add_subdirectory(glad)
 add_subdirectory(glm)
+target_compile_definitions(glm INTERFACE -DGLM_FORCE_SILENT_WARNINGS)
 
 set(GLFW_BUILD_TESTS off)
 set(GLFW_BUILD_DOCS off)
@@ -30,10 +31,5 @@ target_include_directories(ImGui PUBLIC .
 target_link_libraries(ImGui glfw glad)
 
 add_subdirectory(stb_image)
-
-set(RAPIDJSON_BUILD_DOC off)
-set(RAPIDJSON_BUILD_EXAMPLES off)
-set(RAPIDJSON_BUILD_TESTS off)
-set(RAPIDJSON_BUILD_THIRDPARTY_GTEST off)
 
 add_subdirectory(rapidjson)

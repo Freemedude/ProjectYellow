@@ -45,14 +45,21 @@ private:
     float m_near = 0.1f;
     float m_far = 1000.0f;
 
+    //// Lighting
+
+    // Ambient
     glm::vec3 m_ambientColor{0.9f, 0.9f, 0.1f};
     float m_ambientIntensity = 0.1f;
 
+    // Directional
     float m_lightPitch = 0;
     float m_lightYaw = 0;
 
     float m_lightYawSpeed = 30.0f;
     float m_lightPitchSpeed = 10.0f;
+    glm::vec3 m_sunColor = {0.9, 0.9, 0};
+    float m_specularIntensity = 0.5;
+    float m_shininess = 64;
 
     float m_deltaTime = 0;
     double m_frameStart = 0;

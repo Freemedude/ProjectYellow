@@ -35,7 +35,7 @@ public:
 
     bool Link() const;
     bool Valid() const;
-    std::string GetInfoMessage();
+    std::string GetInfoMessage() const;
 
     void DetachAllShaders() const;
 private:

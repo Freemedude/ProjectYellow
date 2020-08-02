@@ -186,15 +186,23 @@ void Application::RenderScene()
 
         mat->m_pipeline->Use();
 
+        // Position
         pipeline->SetMatrix4("u_model", modelMat);
         pipeline->SetMatrix4("u_view", viewMat);
         pipeline->SetMatrix4("u_modelView", modelViewMat);
         pipeline->SetMatrix4("u_mvp", mvp);
+        pipeline->SetVector3("u_cameraPosition", m_camera.Position());
+
+        // Material
         pipeline->SetVector4("u_color", mat->m_color);
-        pipeline->SetVector3("u_lightDirection", direction);
+
+        // Lighting
         pipeline->SetFloat("u_ambientIntensity", m_ambientIntensity);
         pipeline->SetVector3("u_ambientColor", m_ambientColor);
-        pipeline->SetVector3("u_cameraPosition", m_camera.Position());
+        pipeline->SetVector3("u_lightDirection", direction);
+        pipeline->SetVector3("u_sunColor", m_sunColor);
+        pipeline->SetFloat("u_shininess", m_shininess);
+        pipeline->SetFloat("u_specularStrength", m_specularIntensity);
 
         model->m_mesh->Bind();
 
@@ -290,6 +298,10 @@ void Application::RenderGui()
     {
         ImGui::ColorEdit3("Ambient Color", &m_ambientColor[0]);
         ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.1f, 0, 1);
+
+        ImGui::ColorEdit3("Sun Color", &m_sunColor[0]);
+        ImGui::SliderFloat("Specular Intensity", &m_specularIntensity, 0.1f, 1.0f);
+        ImGui::SliderFloat("Shininess", &m_shininess, 1, 512);
         ImGui::SliderFloat("Light Pitch", &m_lightPitch, -180, 180);
         ImGui::SliderFloat("Light Yaw", &m_lightYaw, -180, 180);
         ImGui::SliderFloat("Light Pitch Speed", &m_lightPitchSpeed, -180, 180);
@@ -301,7 +313,8 @@ void Application::RenderGui()
         ImGui::DragFloat3("Cam_Position", &m_camera.Position()[0]);
         ImGui::DragFloat3("Cam_Rotation", &m_camera.Rotation()[0]);
         ImGui::DragFloat("Movement Speed", &m_moveSpeed, 5, 0, 100);
-        ImGui::DragFloat("Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
+        ImGui::DragFloat(
+            "Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
     }
 
 
@@ -419,8 +432,9 @@ void Application::LoadRuntimeVariables()
         return v;
     };
     m_moveSpeed = safeGetFloat(m_runtimeVariables, "movement_speed", m_moveSpeed);
-    m_moveSpeedSlowMultiplier = safeGetFloat(m_runtimeVariables, "movement_speed_slow_multiplier",
-                                             m_moveSpeedSlowMultiplier);
+    m_moveSpeedSlowMultiplier = safeGetFloat(
+        m_runtimeVariables, "movement_speed_slow_multiplier",
+        m_moveSpeedSlowMultiplier);
     m_camera.Position() = readVec3("camera_position");
     m_camera.Rotation() = readVec3("camera_rotation");
 }

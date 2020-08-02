@@ -22,7 +22,6 @@ void RasterPipeline::Use() const
     glUseProgram(m_id);
 }
 
-
 void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
 {
     if (!m_vShader.Init(vShaderPath, ShaderType::Vertex))
@@ -68,7 +67,7 @@ void RasterPipeline::DetachAllShaders() const
     }
 }
 
-std::string RasterPipeline::GetInfoMessage()
+std::string RasterPipeline::GetInfoMessage() const
 {
     if (Valid())
     {

@@ -11,7 +11,6 @@
 
 Shader::~Shader()
 {
-
     std::cout << "Destroyed Shader" << std::endl;
     glDeleteShader(m_id);
 }
