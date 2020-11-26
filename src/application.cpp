@@ -206,8 +206,8 @@ void Application::RenderScene()
 
         model->m_mesh->Bind();
 
-        int numIndices = (int) model->m_mesh->Count();
-        glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+        // int numIndices = (int) model->m_mesh->Count();
+        // glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
     }
 }
 

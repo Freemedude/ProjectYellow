@@ -53,6 +53,8 @@ void Window::Init(const std::string &name, int width, int height, Application *a
 
     gladLoadGL();
 
+    glfwSwapInterval(0);
+
     // During init, enable debug output
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(OpengGLMessageCB, nullptr);
@@ -64,6 +66,8 @@ void Window::Init(const std::string &name, int width, int height, Application *a
     glEnable(GL_DEPTH_TEST);
     glDepthRange(-1, 1);
     glDepthFunc(GL_LESS);
+
+    glfwSetTime(0.0);
 }
 
 void Window::GlfwCb_Error(int error, const char *description)

@@ -1,5 +1,16 @@
-/build
-.idea
+
+/build/
+/out/
+
+# CLion
+/.idea
 CMakeFiles/
 cmake_install.cmake
 cmake-build-debug/
+
+# Visual Studio / code
+/.vs/
+/.vscode/
+
+# Imgui files
+imgui.ini
