@@ -2,10 +2,6 @@
 
 An early stages game-engine.
 
-There is/will in the soon future be a [blog on Github Pages](freemedude.github.io).
-
-There is a trello board: 
-
 ## External Dependencies
 
 While the project is not based on a previous engine, it does have third party dependencies:
