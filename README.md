@@ -1,10 +1,6 @@
 # Project Yellow
 
-The foolish project to solo-develop a strategy game without using an engine.
-
-There is/will in the soon future be a [blog on Github Pages](freemedude.github.io).
-
-There is a trello board: 
+An early stages game-engine.
 
 ## External Dependencies
 
