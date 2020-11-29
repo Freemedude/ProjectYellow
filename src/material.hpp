@@ -12,7 +12,7 @@
 #include <glm/glm.hpp>
 #include <string>
 
-#include "raster_pipeline.hpp"
+#include "shader_program.hpp"
 #include "texture.hpp"
 
 class Material
@@ -20,7 +20,7 @@ class Material
 public:
     std::string m_name;
     glm::vec4 m_color{};
-    std::shared_ptr<RasterPipeline> m_pipeline{};
+    std::shared_ptr<ShaderProgram> m_program{};
     std::shared_ptr<Texture> m_texture{};
 
     Material() = default;
@@ -28,7 +28,7 @@ public:
     void Init(
         const std::string &name,
         glm::vec4 color,
-        std::shared_ptr<RasterPipeline> pipeline,
+        std::shared_ptr<ShaderProgram> program,
         std::shared_ptr<Texture> texture);
 };
 

@@ -40,9 +40,9 @@ void Scene::TestScene()
     m_textures.push_back(testPng);
 
     // Materials
-    auto pipeline = std::make_shared<RasterPipeline>();
-    pipeline->Init("shaders/Default.vert", "shaders/Default.frag");
-    m_pipelines.push_back(pipeline);
+    auto program = std::make_shared<ShaderProgram>();
+    program->Init("shaders/Default.vert", "shaders/Default.frag");
+    m_programs.push_back(program);
 
     int numMats = 20;
 
@@ -53,7 +53,7 @@ void Scene::TestScene()
     {
         auto mat = std::make_shared<Material>();
         glm::vec4 color{colorDist(rng), colorDist(rng), colorDist(rng), colorDist(rng)};
-        mat->Init("Material " + std::to_string(i), color, pipeline, stickFigure);
+        mat->Init("Material " + std::to_string(i), color, program, stickFigure);
         m_materials.push_back(mat);
     }
 
@@ -77,7 +77,7 @@ void Scene::TestScene()
     // Debug cube
     auto cubeMaterial = std::make_shared<Material>();
     m_materials.push_back(cubeMaterial);
-    cubeMaterial->Init("Cube Material", {1, 1, 0, 1}, pipeline, testPng);
+    cubeMaterial->Init("Cube Material", {1, 1, 0, 1}, program, testPng);
 
     auto debugCube = std::make_shared<Model>();
     m_models.push_back(debugCube);

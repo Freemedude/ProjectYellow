@@ -12,7 +12,7 @@
 #include <glm/glm.hpp>
 
 #include "mesh.hpp"
-#include "raster_pipeline.hpp"
+#include "shader_program.hpp"
 #include "assets.hpp"
 #include "gpu_buffer.hpp"
 #include "window.hpp"

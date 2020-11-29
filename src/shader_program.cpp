@@ -4,25 +4,26 @@
 // @brief 
 //
 
-#include "raster_pipeline.hpp"
+#include "shader_program.hpp"
+#include "opengl_helpers.hpp"
 
 #include <stdexcept>
 #include <iostream>
 
-RasterPipeline::RasterPipeline() = default;
+ShaderProgram::ShaderProgram() = default;
 
-RasterPipeline::~RasterPipeline()
+ShaderProgram::~ShaderProgram()
 {
     std::cout << "Destroyed Pipeline" << std::endl;
     glDeleteProgram(m_id);
 }
 
-void RasterPipeline::Use() const
+void ShaderProgram::Use() const
 {
     glUseProgram(m_id);
 }
 
-void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
+void ShaderProgram::Init(const char *vShaderPath, const char *fShaderPath)
 {
     if (!m_vShader.Init(vShaderPath, ShaderType::Vertex))
     {
@@ -33,6 +34,7 @@ void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
     }
     if (!m_fShader.Init(fShaderPath, ShaderType::Fragment))
     {
+    
         std::string error = m_fShader.GetInfoMessage();
 
         std::cerr << error << std::endl;
@@ -43,7 +45,7 @@ void RasterPipeline::Init(const char *vShaderPath, const char *fShaderPath)
     Link();
 }
 
-bool RasterPipeline::Link() const
+bool ShaderProgram::Link() const
 {
 
     DetachAllShaders();
@@ -55,7 +57,7 @@ bool RasterPipeline::Link() const
     return Valid();
 }
 
-void RasterPipeline::DetachAllShaders() const
+void ShaderProgram::DetachAllShaders() const
 {
     int count;
     uint attachedShaders[2];
@@ -67,7 +69,7 @@ void RasterPipeline::DetachAllShaders() const
     }
 }
 
-std::string RasterPipeline::GetInfoMessage() const
+std::string ShaderProgram::GetInfoMessage() const
 {
     if (Valid())
     {
@@ -82,20 +84,20 @@ std::string RasterPipeline::GetInfoMessage() const
     return result;
 }
 
-bool RasterPipeline::Valid() const
+bool ShaderProgram::Valid() const
 {
     int success = false;
     glGetProgramiv(m_id, GL_LINK_STATUS, &success);
     return success;
 }
 
-int RasterPipeline::GetLocation(const std::string &name) const
+int ShaderProgram::GetLocation(const std::string &name) const
 {
     int location = glGetUniformLocation(m_id, name.c_str());
     return location;
 }
 
-void RasterPipeline::SetMatrix4(const std::string &name, glm::mat4 mat)
+void ShaderProgram::SetMatrix4(const std::string &name, glm::mat4 mat)
 {
     int location = GetLocation(name);
     if (location != -1)
@@ -104,7 +106,7 @@ void RasterPipeline::SetMatrix4(const std::string &name, glm::mat4 mat)
     }
 }
 
-void RasterPipeline::SetVector3(const std::string &name, glm::vec3 vec)
+void ShaderProgram::SetVector3(const std::string &name, glm::vec3 vec)
 {
     int location = GetLocation(name);
     if (location != -1)
@@ -113,7 +115,7 @@ void RasterPipeline::SetVector3(const std::string &name, glm::vec3 vec)
     }
 }
 
-void RasterPipeline::SetFloat(const std::string &name, float f)
+void ShaderProgram::SetFloat(const std::string &name, float f)
 {
     int location = GetLocation(name);
     if (location != -1)
@@ -122,7 +124,7 @@ void RasterPipeline::SetFloat(const std::string &name, float f)
     }
 }
 
-void RasterPipeline::SetVector4(const std::string &name, glm::vec4 vec)
+void ShaderProgram::SetVector4(const std::string &name, glm::vec4 vec)
 {
     int location = GetLocation(name);
     if (location != -1)

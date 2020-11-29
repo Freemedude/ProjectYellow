@@ -27,7 +27,7 @@ void Application::Init()
     m_window.Init("Project Yellow", 1280, 720, this);
 
     InitDearImGui();
-    m_assets.Init("assets");
+    m_assets.Init();
 
     m_inputs.invalidLastCursor = true;
 
@@ -40,7 +40,6 @@ void Application::Init()
     m_runtimeFile = Assets::GetFile("runtime.json");
     m_runtimeVariables.Parse(m_runtimeFile.Text());
     LoadRuntimeVariables();
-
 }
 
 void Application::InitDearImGui()
@@ -49,9 +48,12 @@ void Application::InitDearImGui()
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void) io;
+
     const char *glsl_version = "#version 450";
+    
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(m_window.GlfwWindow(), true);
     ImGui_ImplOpenGL3_Init(glsl_version);
@@ -181,33 +183,33 @@ void Application::RenderScene()
         glm::mat4 mvp = projMat * modelViewMat;
 
         auto mat = model->m_material;
-        auto pipeline = mat->m_pipeline;
+        auto program = mat->m_program;
         glBindTexture(GL_TEXTURE_2D, mat->m_texture->m_id);
 
-        mat->m_pipeline->Use();
+        mat->m_program->Use();
 
         // Position
-        pipeline->SetMatrix4("u_model", modelMat);
-        pipeline->SetMatrix4("u_view", viewMat);
-        pipeline->SetMatrix4("u_modelView", modelViewMat);
-        pipeline->SetMatrix4("u_mvp", mvp);
-        pipeline->SetVector3("u_cameraPosition", m_camera.Position());
+        program->SetMatrix4("u_model", modelMat);
+        program->SetMatrix4("u_view", viewMat);
+        program->SetMatrix4("u_modelView", modelViewMat);
+        program->SetMatrix4("u_mvp", mvp);
+        program->SetVector3("u_cameraPosition", m_camera.Position());
 
         // Material
-        pipeline->SetVector4("u_color", mat->m_color);
+        program->SetVector4("u_color", mat->m_color);
 
         // Lighting
-        pipeline->SetFloat("u_ambientIntensity", m_ambientIntensity);
-        pipeline->SetVector3("u_ambientColor", m_ambientColor);
-        pipeline->SetVector3("u_lightDirection", direction);
-        pipeline->SetVector3("u_sunColor", m_sunColor);
-        pipeline->SetFloat("u_shininess", m_shininess);
-        pipeline->SetFloat("u_specularStrength", m_specularIntensity);
+        program->SetFloat("u_ambientIntensity", m_ambientIntensity);
+        program->SetVector3("u_ambientColor", m_ambientColor);
+        program->SetVector3("u_lightDirection", direction);
+        program->SetVector3("u_sunColor", m_sunColor);
+        program->SetFloat("u_shininess", m_shininess);
+        program->SetFloat("u_specularStrength", m_specularIntensity);
 
         model->m_mesh->Bind();
 
-        // int numIndices = (int) model->m_mesh->Count();
-        // glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
+        int numIndices = (int) model->m_mesh->Count();
+        glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
     }
 }
 
@@ -342,19 +344,19 @@ void Application::RenderGui()
         if (ImGui::CollapsingHeader("Shaders"))
         {
             // Pipelines
-            for (int i = 0; i < m_scene.m_pipelines.size(); ++i)
+            for (int i = 0; i < m_scene.m_programs.size(); ++i)
             {
                 ImGui::PushID(i);
-                const auto &pipeline = m_scene.m_pipelines[i];
+                const auto &program = m_scene.m_programs[i];
 
                 bool changed = false;
-                changed |= displayShader(pipeline->m_vShader);
+                changed |= displayShader(program->m_vShader);
                 ImGui::PushID(i + i);
-                changed |= displayShader(pipeline->m_fShader);
+                changed |= displayShader(program->m_fShader);
 
                 if (ImGui::Button("Link") || changed)
                 {
-                    pipeline->Link();
+                    program->Link();
                 }
 
                 ImGui::PopID();

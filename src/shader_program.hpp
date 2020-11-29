@@ -12,17 +12,15 @@
 
 #include "shader.hpp"
 
-class RasterPipeline
+class ShaderProgram
 {
-private:
-
 public:
     Shader m_vShader{};
     Shader m_fShader{};
     uint m_id = 0;
 
-    RasterPipeline();
-    ~RasterPipeline();
+    ShaderProgram();
+    ~ShaderProgram();
 
     void Init(const char *vShaderPath, const char* fShaderPath);
     void Use() const;

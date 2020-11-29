@@ -1,7 +1,7 @@
 //
 // @author freemedude
 // @date 2020-07-22
-// @brief 
+// @brief
 //
 
 #ifndef PROJECT_YELLOW_FILE_HPP
@@ -15,12 +15,11 @@ class File
 {
 public:
     File() = default;
-
-    File(const char *path);
+    File(const std::string &path);
 
     ~File();
 
-    void Read(const char *path);
+    void Read(const std::string &path);
 
     void Write(const char *bytes);
 

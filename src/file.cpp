@@ -10,12 +10,12 @@
 #include <fstream>
 #include <sstream>
 
-File::File(const char *path)
+File::File(const std::string &path)
 {
     Read(path);
 }
 
-void File::Read(const char *path)
+void File::Read(const std::string &path)
 {
     m_path = path;
     std::ifstream file(path, std::ios::binary | std::ios::in);

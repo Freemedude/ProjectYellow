@@ -1,7 +1,7 @@
 //
 // @author freemedude
 // @date 2020-07-18
-// @brief 
+// @brief Abstracts asset fetching
 //
 
 #ifndef PROJECT_YELLOW_ASSETS_HPP
@@ -23,16 +23,16 @@ private:
 public:
     Assets();
 
-    void Init(const char *assetDirName);
+    void Init();
 
     static Assets &Instance();
 
-    static File GetFile(const char *relativePath);
+    static File GetFile(const std::string &relativePath);
 
-    static Image GetImage(const char *, int channels);
+    static Image GetImage(const std::string &path, i32 channels);
 
 private:
-    std::filesystem::path GetAssetPath(const char *assetDirName);
+    std::filesystem::path SearchParentForDirRecursive(const std::string &dir);
 };
 
 
