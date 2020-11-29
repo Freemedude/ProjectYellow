@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-19
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_MODEL_HPP
-#define PROJECT_YELLOW_MODEL_HPP
+#pragma once
 
 #include <memory>
 
@@ -31,6 +29,3 @@ public:
 
     glm::vec3 &Scale();
 };
-
-
-#endif //PROJECT_YELLOW_MODEL_HPP

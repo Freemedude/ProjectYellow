@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-08-02
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_RAPIDJSON_WRAPPER_HPP
-#define PROJECT_YELLOW_RAPIDJSON_WRAPPER_HPP
+#pragma once
 
 #pragma warning(push)
 
@@ -16,5 +14,3 @@
 #include "rapidjson/writer.h"
 
 #pragma warning(pop)
-
-#endif //PROJECT_YELLOW_RAPIDJSON_WRAPPER_HPP

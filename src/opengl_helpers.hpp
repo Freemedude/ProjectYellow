@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-19
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_OPENGL_HELPERS_HPP
-#define PROJECT_YELLOW_OPENGL_HELPERS_HPP
+#pragma once
 
 #include <string>
 #include <glad/glad.h>
@@ -27,5 +25,3 @@ inline std::string GetOpenGlLabel(uint type, uint object)
     glGetObjectLabel(type, object, maxLength, &actualLength, str.data());
     return str.substr(0, actualLength);
 }
-
-#endif //PROJECT_YELLOW_OPENGL_HELPERS_HPP

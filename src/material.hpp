@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-20
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_MATERIAL_HPP
-#define PROJECT_YELLOW_MATERIAL_HPP
+#pragma once
 
 #include <memory>
 
@@ -31,6 +29,3 @@ public:
         std::shared_ptr<ShaderProgram> program,
         std::shared_ptr<Texture> texture);
 };
-
-
-#endif //PROJECT_YELLOW_MATERIAL_HPP

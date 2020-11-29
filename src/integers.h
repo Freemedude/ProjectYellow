@@ -7,8 +7,7 @@
  * 
  * 
  */
-#ifndef INTEGERS_H_202006140111
-#define INTEGERS_H_202006140111
+#pragma once
 
 #include <cstdint>
 
@@ -23,6 +22,3 @@ typedef int32_t i32;
 typedef int64_t i64;
 
 typedef unsigned int uint;
-
-
-#endif // INTEGERS_H_202006140111

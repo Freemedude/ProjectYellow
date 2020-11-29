@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-19
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_MESH_HPP
-#define PROJECT_YELLOW_MESH_HPP
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -138,6 +136,3 @@ public:
         return pMesh;
     }
 };
-
-
-#endif //PROJECT_YELLOW_MESH_HPP

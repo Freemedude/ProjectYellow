@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-19
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_GPU_BUFFER_HPP
-#define PROJECT_YELLOW_GPU_BUFFER_HPP
+#pragma once
 
 #include <glad/glad.h>
 #include <string>
@@ -28,6 +26,3 @@ private:
     uint m_target = 0;
 
 };
-
-
-#endif //PROJECT_YELLOW_GPU_BUFFER_HPP

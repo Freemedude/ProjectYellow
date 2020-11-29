@@ -3,9 +3,7 @@
 // @date 2020-07-18
 // @brief Abstracts asset fetching
 //
-
-#ifndef PROJECT_YELLOW_ASSETS_HPP
-#define PROJECT_YELLOW_ASSETS_HPP
+#pragma once
 
 #include <string>
 #include <filesystem>
@@ -34,6 +32,3 @@ public:
 private:
     std::filesystem::path SearchParentForDirRecursive(const std::string &dir);
 };
-
-
-#endif //PROJECT_YELLOW_ASSETS_HPP

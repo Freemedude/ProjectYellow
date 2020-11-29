@@ -1,12 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-22
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_IMAGE_HPP
-#define PROJECT_YELLOW_IMAGE_HPP
-
+#pragma once
 
 class Image
 {
@@ -21,6 +18,3 @@ public:
 
     void Free();
 };
-
-
-#endif //PROJECT_YELLOW_IMAGE_HPP

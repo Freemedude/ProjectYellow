@@ -4,8 +4,7 @@
 // @brief 
 //
 
-#ifndef PROJECT_YELLOW_APPLICATION_HPP
-#define PROJECT_YELLOW_APPLICATION_HPP
+#pragma once
 
 #define GLM_FORCE_SWIZZLE
 
@@ -105,6 +104,3 @@ private:
 
     static float ClampDegrees(float deg);
 };
-
-
-#endif //PROJECT_YELLOW_APPLICATION_HPP

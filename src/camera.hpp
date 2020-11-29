@@ -1,11 +1,9 @@
 //
 // @author freemedude
 // @date 2020-07-19
-// @brief 
+// @brief
 //
-
-#ifndef PROJECT_YELLOW_CAMERA_HPP
-#define PROJECT_YELLOW_CAMERA_HPP
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -32,6 +30,3 @@ public:
 
     void AddLocal(glm::vec3 vec);
 };
-
-
-#endif //PROJECT_YELLOW_CAMERA_HPP
