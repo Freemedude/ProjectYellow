@@ -10,7 +10,12 @@
 #include <stdexcept>
 #include <iostream>
 
-ShaderProgram::ShaderProgram() = default;
+ShaderProgram::ShaderProgram(const std::vector<std::shared_ptr<Shader>> &shaders)
+ : m_shaders(shaders)
+{
+    m_id = glCreateProgram();
+    Link();
+}
 
 ShaderProgram::~ShaderProgram()
 {
@@ -23,55 +28,29 @@ void ShaderProgram::Use() const
     glUseProgram(m_id);
 }
 
-void ShaderProgram::Init(const char *vShaderPath, const char *fShaderPath)
-{
-    if (!m_vShader.Init(vShaderPath, ShaderType::Vertex))
-    {
-        std::string error = m_vShader.GetInfoMessage();
-
-        std::cerr << error << std::endl;
-        throw std::runtime_error(error);
-    }
-    if (!m_fShader.Init(fShaderPath, ShaderType::Fragment))
-    {
-    
-        std::string error = m_fShader.GetInfoMessage();
-
-        std::cerr << error << std::endl;
-        throw std::runtime_error(error);
-    }
-
-    m_id = glCreateProgram();
-    Link();
-}
-
 bool ShaderProgram::Link() const
 {
 
-    DetachAllShaders();
-
-    glAttachShader(m_id, m_vShader.m_id);
-    glAttachShader(m_id, m_fShader.m_id);
-    glLinkProgram(m_id);
-
-    return Valid();
-}
-
-void ShaderProgram::DetachAllShaders() const
-{
-    int count;
-    uint attachedShaders[2];
-    glGetAttachedShaders(m_id, m_maxShaders, &count, attachedShaders);
-
-    for (int i = 0; i < count; ++i)
+    for(const auto &shader : m_shaders)
     {
-        glDetachShader(m_id, attachedShaders[i]);
+        glAttachShader(m_id, shader->m_id);
+
     }
+
+    glLinkProgram(m_id);
+    bool valid = HasSuccessfullyLinked();
+    
+    for (const auto &shader : m_shaders)
+    {
+        glDetachShader(m_id, shader->m_id);
+    }
+
+    return valid;
 }
 
 std::string ShaderProgram::GetInfoMessage() const
 {
-    if (Valid())
+    if (HasSuccessfullyLinked())
     {
         return "No messages";
     }
@@ -84,7 +63,7 @@ std::string ShaderProgram::GetInfoMessage() const
     return result;
 }
 
-bool ShaderProgram::Valid() const
+bool ShaderProgram::HasSuccessfullyLinked() const
 {
     int success = false;
     glGetProgramiv(m_id, GL_LINK_STATUS, &success);

@@ -1,7 +1,7 @@
 //
 // @author freemedude
 // @date 2020-07-18
-// @brief 
+// @brief
 //
 
 #include "shader.hpp"
@@ -9,19 +9,24 @@
 
 #include <iostream>
 
+Shader::Shader(const char* path, ShaderType type)
+    : m_path(path), m_type(type)
+{
+    m_id = glCreateShader((uint)type);
+
+    if (!Compile())
+    {
+        std::string error = GetInfoMessage();
+
+        std::cerr << error << std::endl;
+        throw std::runtime_error(error);
+    }
+}
+
 Shader::~Shader()
 {
     std::cout << "Destroyed Shader" << std::endl;
     glDeleteShader(m_id);
-}
-
-bool Shader::Init(const char *path, ShaderType type)
-{
-    m_path = path;
-    m_id = glCreateShader((uint) type);
-    m_type = type;
-
-    return Compile();
 }
 
 bool Shader::Compile() const
@@ -44,7 +49,7 @@ bool Shader::Compile() const
 
 std::string Shader::GetInfoMessage() const
 {
-    if(Valid())
+    if (Valid())
     {
         return "No messages";
     }

@@ -3,9 +3,7 @@
 // @date 2020-07-18
 // @brief 
 //
-
-#ifndef PROJECT_YELLOW_SHADER_HPP
-#define PROJECT_YELLOW_SHADER_HPP
+#pragma once
 
 #include <string>
 #include <glad/glad.h>
@@ -14,25 +12,22 @@
 
 enum class ShaderType
 {
-    Vertex = GL_VERTEX_SHADER,
-    Fragment = GL_FRAGMENT_SHADER
+    UNKNOWN = 0,
+    VERTEX = GL_VERTEX_SHADER,
+    FRAGMENT = GL_FRAGMENT_SHADER
 };
 
 class Shader
 {
 public:
-    const char *m_path;
-    ShaderType m_type;
-    uint m_id;
+    std::string m_path = nullptr;
+    ShaderType m_type = ShaderType::UNKNOWN;
+    uint m_id = 0;
 
-    Shader() = default;
+    explicit Shader(const char* path, ShaderType type);
     ~Shader();
-
-    bool Init(const char *path, ShaderType type);
 
     bool Compile() const;
     bool Valid() const;
     std::string GetInfoMessage() const;
 };
-
-#endif //PROJECT_YELLOW_SHADER_HPP

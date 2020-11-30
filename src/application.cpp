@@ -1,13 +1,13 @@
 //
 // @author freemedude
 // @date 2020-07-18
-// @brief 
+// @brief
 //
 
 #include "application.hpp"
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 #include <set>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -36,7 +36,6 @@ void Application::Init()
     float aspectRatio = m_window.AspectRatio();
     m_camera.InitPerspective(glm::radians(m_fov), aspectRatio, m_near, m_far);
 
-
     m_runtimeFile = Assets::GetFile("runtime.json");
     m_runtimeVariables.Parse(m_runtimeFile.Text());
     LoadRuntimeVariables();
@@ -47,10 +46,10 @@ void Application::InitDearImGui()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
-    (void) io;
+    (void)io;
 
     const char *glsl_version = "#version 450";
-    
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
@@ -99,7 +98,7 @@ void Application::EndFrame()
 {
     m_window.SwapBuffers();
     m_frameEnd = glfwGetTime();
-    m_deltaTime = (float) glm::max(m_frameEnd - m_frameStart, 0.0);
+    m_deltaTime = (float)glm::max(m_frameEnd - m_frameStart, 0.0);
     HandleInputs();
 }
 
@@ -123,8 +122,7 @@ void Application::HandleInputs()
 
 void Application::HandleCameraInputs()
 {
-    auto directionFromBooleans = [](bool negative, bool positive) -> float
-    {
+    auto directionFromBooleans = [](bool negative, bool positive) -> float {
         float result = float(positive - negative);
         return result;
     };
@@ -132,7 +130,7 @@ void Application::HandleCameraInputs()
     cameraMovement.x = directionFromBooleans(m_inputs.left, m_inputs.right);
     cameraMovement.y = directionFromBooleans(m_inputs.down, m_inputs.up);
     cameraMovement.z = directionFromBooleans(m_inputs.back, m_inputs.forward);
-    glm::vec3 movement = cameraMovement * (float) m_deltaTime * m_moveSpeed;
+    glm::vec3 movement = cameraMovement * (float)m_deltaTime * m_moveSpeed;
 
     if (m_inputs.moveSlow)
     {
@@ -208,7 +206,7 @@ void Application::RenderScene()
 
         model->m_mesh->Bind();
 
-        int numIndices = (int) model->m_mesh->Count();
+        int numIndices = (int)model->m_mesh->Count();
         glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, nullptr);
     }
 }
@@ -218,10 +216,12 @@ void Application::RenderGui()
     for (int i = 0; i < m_debugSettings.shaderDialogs.size(); i++)
     {
         Shader *shader = m_debugSettings.shaderDialogs[i];
-        if (ImGui::BeginPopup(shader->m_path))
+        if (ImGui::BeginPopup(shader->m_path.c_str()))
         {
             ImGui::Text("%s", shader->GetInfoMessage().c_str());
-        } else
+            ImGui::EndPopup();
+        }
+        else
         {
             auto index = std::find(
                 m_debugSettings.shaderDialogs.begin(),
@@ -230,26 +230,25 @@ void Application::RenderGui()
             if (index != m_debugSettings.shaderDialogs.end())
             {
                 m_debugSettings.shaderDialogs.erase(index);
-            } else
+            }
+            else
             {
                 throw std::runtime_error("Tried to remove non-existent shader");
             }
         }
-        ImGui::EndPopup();
     }
 
-
     const int indentPerLevel = 20;
-    auto displayShader = [&](Shader &shader) -> bool
-    {
-        ImGui::LabelText("Path", "%s", shader.m_path);
+    auto displayShader = [&](Shader &shader) -> bool {
+        ImGui::LabelText("Path", "%s", shader.m_path.c_str());
         ImGui::LabelText("Id", "%d", shader.m_id);
         if (ImGui::Button("Recompile"))
         {
             if (!shader.Compile())
             {
                 m_debugSettings.shaderDialogs.push_back(&shader);
-            } else
+            }
+            else
             {
                 return true;
             }
@@ -267,17 +266,18 @@ void Application::RenderGui()
     ImGui::Text(
         "Application average %.3f ms/frame (%.1f FPS)",
         1000.0f /
-        frameRate, frameRate);
+            frameRate,
+        frameRate);
     ImGui::Text(
         "MS This Frame: %.3fms",
         m_deltaTime * 1000);
-
 
     ImGui::Checkbox("Cursor disabled", &m_inputs.cursorLocked);
     if (m_inputs.cursorLocked)
     {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
-    } else
+    }
+    else
     {
         int mask = ~ImGuiConfigFlags_NoMouse;
         ImGui::GetIO().ConfigFlags &= mask;
@@ -319,7 +319,6 @@ void Application::RenderGui()
             "Slow move multiplier", &m_moveSpeedSlowMultiplier, 0.05f, 0, 1);
     }
 
-
     if (ImGui::CollapsingHeader("Scene"))
     {
         ImGui::Indent(indentPerLevel);
@@ -350,16 +349,20 @@ void Application::RenderGui()
                 const auto &program = m_scene.m_programs[i];
 
                 bool changed = false;
-                changed |= displayShader(program->m_vShader);
-                ImGui::PushID(i + i);
-                changed |= displayShader(program->m_fShader);
+                for (int shaderIndex = 0;
+                     shaderIndex < program->m_shaders.size();
+                     shaderIndex++)
+                {
+                    ImGui::PushID(i + shaderIndex);
+                    changed |= displayShader(*program->m_shaders[shaderIndex]);
+                    ImGui::PopID();
+                }
 
                 if (ImGui::Button("Link") || changed)
                 {
                     program->Link();
                 }
 
-                ImGui::PopID();
                 ImGui::PopID();
             }
         }
@@ -389,11 +392,10 @@ void Application::RenderGui()
                 ImGui::LabelText("Name", "%s", tex->m_name.c_str());
                 ImGui::LabelText("Id", "%d", tex->m_id);
                 ImGui::Image(
-                    (void *) (u64) tex->m_id,
+                    (void *)(u64)tex->m_id,
                     ImVec2(128.0f, 128.0f),
                     ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
                 ImGui::PopID();
-
             }
         }
     }
@@ -408,20 +410,18 @@ void Application::LoadRuntimeVariables()
 {
     using namespace rapidjson;
 
-
-    auto safeGetFloat = [&](Value &v, const char *name, float defaultValue)
-    {
+    auto safeGetFloat = [&](Value &v, const char *name, float defaultValue) {
         if (v.HasMember(name) && v[name].IsFloat())
         {
             return v[name].GetFloat();
-        } else
+        }
+        else
         {
             return defaultValue;
         }
     };
 
-    auto readVec3 = [&](const char *name)
-    {
+    auto readVec3 = [&](const char *name) {
         if (!m_runtimeVariables.HasMember(name))
         {
             return glm::vec3(0, 0, 0);
@@ -445,12 +445,12 @@ void Application::SaveRuntimeVariables()
 {
     using namespace rapidjson;
 
-    auto safeSetFloat = [&](Value &v, const char *name, float value)
-    {
+    auto safeSetFloat = [&](Value &v, const char *name, float value) {
         if (v.HasMember(name))
         {
             v[name] = value;
-        } else
+        }
+        else
         {
             Value key(name, m_runtimeVariables.GetAllocator());
             Value val(value);
@@ -458,8 +458,7 @@ void Application::SaveRuntimeVariables()
         }
     };
 
-    auto setVec3 = [&](Value &v, const char *name, glm::vec3 vec)
-    {
+    auto setVec3 = [&](Value &v, const char *name, glm::vec3 vec) {
         if (!m_runtimeVariables.HasMember(name))
         {
             Value key(name, m_runtimeVariables.GetAllocator());
@@ -478,7 +477,6 @@ void Application::SaveRuntimeVariables()
     setVec3(m_runtimeVariables, "camera_position", m_camera.Position());
     setVec3(m_runtimeVariables, "camera_rotation", m_camera.Rotation());
 
-
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     m_runtimeVariables.Accept(writer);
@@ -493,7 +491,7 @@ Inputs &Application::GetInputs()
 void Application::Resize(int width, int height)
 {
     glViewport(0, 0, width, height);
-    float aspectRatio = (float) width / (float) height;
+    float aspectRatio = (float)width / (float)height;
     m_camera.InitPerspective(glm::radians(m_fov), aspectRatio, m_near, m_far);
     Update();
 }

@@ -8,6 +8,8 @@
 
 #include <string>
 #include <random>
+#include <memory>
+#include <vector>
 
 void Scene::Init()
 {
@@ -40,8 +42,12 @@ void Scene::TestScene()
     m_textures.push_back(testPng);
 
     // Materials
-    auto program = std::make_shared<ShaderProgram>();
-    program->Init("shaders/Default.vert", "shaders/Default.frag");
+    auto vertexShader = std::make_shared<Shader>("shaders/Default.vert", ShaderType::VERTEX);
+    auto fragmentShader = std::make_shared<Shader>("shaders/Default.frag", ShaderType::FRAGMENT);
+
+    auto shaders = {vertexShader, fragmentShader};
+
+    auto program = std::make_shared<ShaderProgram>(shaders);
     m_programs.push_back(program);
 
     int numMats = 20;
